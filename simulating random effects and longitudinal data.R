@@ -143,7 +143,7 @@ df$time <- df$time-1
 ## adding trt effect
 trtB =  5
 interB= 2.5
-
+### so we can expect 5+(2.5)*(1:9),, trt efect over time  7.5 10.0 12.5 15.0 17.5 20.0 22.5 25.0 27.5
 
 trt <- sample( c(1,0),  length(unique(lower.id)), replace=TRUE)  # trt indicator
 df$trt <- rep(trt, times=p)
@@ -323,16 +323,18 @@ j = sort(levels(df$time))
 
 for (i in j) {
  
-df$time <- relevel(df$time, ref=i)
-
-f <- (lmer( yb ~ time* trt  + (1|top) + (1|mid) + (as.numeric(time)|low), data=df))
-print(summary(f))
-print(paste("Time",i))
-print(fixed.effects(f)['trt'])
+  # relevel to estimate  
+  df$time <- relevel(df$time, ref=i)
+  f <- (lmer( yb ~ time* trt  + (1|top) + (1|mid) + (as.numeric(time)|low), data=df))
+  print(summary(f))
+  print(paste("Time",i))
+  print(fixed.effects(f)['trt'])
 
 }
 
-
+# trt effect that we should expect to see and estimate
+trtB + interB*(1:9)
+ 
 
  
 
