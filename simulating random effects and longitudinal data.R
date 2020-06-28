@@ -1,4 +1,4 @@
-#https://stat.ethz.ch/pipermail/r-sig-mixed-models/2009q1/001790.html
+
 ## this is good...
 ## need to add a treatment effect starting after baseline
 ## hybrid approach from my nested app and longitudinal modelling app
