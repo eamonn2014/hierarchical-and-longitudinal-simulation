@@ -1,6 +1,6 @@
 
 ## this is good...
-## need to include baseline as covariate
+## need to include the baseline as covariate
 ## hybrid approach from my nested app and longitudinal modelling app
 
 rm(list=ls())
@@ -321,19 +321,29 @@ df$time <- factor(df$time)
 
 j = sort(levels(df$time))
 
+res<- rep(NA, length(j))
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ests <- function(x){
+
 for (i in j) {
  
   # relevel to estimate  
   df$time <- relevel(df$time, ref=i)
   f <- (lmer( yb ~ time* trt  + (1|top) + (1|mid) + (as.numeric(time)|low), data=df))
-  print(summary(f))
-  print(paste("Time",i))
-  print(fixed.effects(f)['trt'])
+  #print(summary(f))
+ # print(paste("Time",i))
+  res[i] <- fixed.effects(f)['trt'][1][[1]]
+}
+  return(res)
 
 }
 
-# trt effect that we should expect to see and estimate
-trtB + interB*(1:9)
+x <- ests()
+ 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# true trt effect - that which we should expect to  estimate
+c(0,trtB + interB*(1:9))
  
 
  
