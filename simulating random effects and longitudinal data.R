@@ -1,6 +1,6 @@
 
 ## this is good...
-## need to add a treatment effect starting after baseline
+## need to include baseline as covariate
 ## hybrid approach from my nested app and longitudinal modelling app
 
 rm(list=ls())
@@ -98,6 +98,9 @@ tau0   <-  1.2748
 tau1   <-  0.2276
 tau01  <- -0.62
 
+
+
+
 ### simulate (correlated) random effects for intercepts and slopes
 mu  <- c(0,0)
 S   <- matrix(c(1, tau01, tau01, 1), nrow=2)
@@ -120,33 +123,80 @@ Data <- data.frame( top=top.id, mid=middle.id, low=lower.id,
                     y2= rnorm( sum(replicates), 
                               top.r[top.id] + 
                               middle.r[middle.id] +
-                              U[,1][lower.id] + 
-                    ((beta1 +  U[,2][lower.id]) *  time), sigma), 
+                     U[,1][lower.id] +                              # random intercepts
+                    ((beta1 +  U[,2][lower.id]) *  time), sigma),   # random slopes
 
                     # ar1 nosie
                     y=   top.r[top.id] + 
                               middle.r[middle.id] +
-                              U[,1][lower.id] + 
-                              ((beta1 +  U[,2][lower.id]) *  time) +
+                              U[,1][lower.id] +             # random intercepts
+                    ((beta1 +  U[,2][lower.id]) *  time) +  # random slopes
                               eij
 )
                               
 df <- as.data.frame(Data)
+df$time <- df$time-1
 
-df[1:20,]
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# incorporating trt effect
+
+## adding trt effect
+trtB =  5
+interB= 2.5
+
+
+trt <- sample( c(1,0),  length(unique(lower.id)), replace=TRUE)  # trt indicator
+df$trt <- rep(trt, times=p)
+df$interaction <- ifelse(df$trt==1,1,0)
+
+# trt effect only 1 group.
+# interaction only in treated
+df$y2b = with(df, y2+ (trt*trtB)+  ((time)*interaction*interB))
+df$y2b = with(df,ifelse((trt %in% 1 & time %in% 0), y2, y2b  ))
+
+df$yb = with(df, y+ (trt*trtB)+  ((time)*interaction*interB))
+df$yb = with(df,ifelse((trt %in% 1 & time %in% 0), y, yb  ))
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ignoring treatment
+
+df[1:40,]
 
 df$time <- factor(df$time)
 
 (fit2 <- lmer( y2 ~ time + (1|top) + (1|mid) + (as.numeric(time)|low), data=df))
- 
+
 (fit3 <- lmer( y ~ time + (1|top) + (1|mid) + (as.numeric(time)|low), data=df))
 
 (fit.res <-  
-  tryCatch(gls(y2 ~ time +0 ,
-               correlation=corAR1(form=~ as.numeric(time)|low), 
-               weights=varIdent(form=~1|time),
-               df, na.action=na.omit) , 
-           error=function(e) e))
+    tryCatch(gls(y2 ~ time +0 ,
+                 correlation=corAR1(form=~ as.numeric(time)|low), 
+                 weights=varIdent(form=~1|time),
+                 df, na.action=na.omit) , 
+             error=function(e) e))
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# analysisng  treatment
+
+
+(fit2 <- lmer( y2b ~ time* trt + (1|top) + (1|mid) + (as.numeric(time)|low), data=df))
+
+(fit3 <- lmer( yb ~ time* trt  + (1|top) + (1|mid) + (as.numeric(time)|low), data=df))
+
+(fit.res <-  
+    tryCatch(gls(y2b ~ time* trt +0 ,
+                 correlation=corAR1(form=~ as.numeric(time)|low), 
+                 weights=varIdent(form=~1|time),
+                 df, na.action=na.omit) , 
+             error=function(e) e))
+
+
+summary(fit2)
+summary(fit3)
+summary(fit.res)
+
+
+
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~plot not model based~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -234,33 +284,57 @@ print(pr1 + labs(y="Response", x = "Visit") +
                        length(unique(df$ID))," patients & arithmetic mean with 95% CI shown in black\nNumber of patient values at each time point") )
 )
 
-##############
-
-fit2
-fit3
-fit.res
 
 
+################################
+############## plot of treatment
+################################
+ 
+
+df$time <- as.numeric(as.character(df$VISIT))
+df$y <- df$yb
+df$unit <- df$low
+df$treat <- factor(df$trt)
+
+
+ 
+
+pd <- position_dodge(.4)
+
+plot1 <-  ggplot(df,   aes (x = time, y = y, group = unit, color = treat)) +
+  geom_line() + geom_point() + ylab("response") + xlab("visit") +
+  stat_summary(fun=mean,geom="line", colour="black",lwd=1,aes(group=treat ) ) +
+  # geom_smooth(method=lm, se=FALSE, fullrange=TRUE )+
+  # scale_shape_manual(values=c(3, 16))+ 
+  scale_color_manual(values=c('#999999','#E69F00'))+
+  theme(legend.position="top") +
+  #xlim(0, J) +
+  scale_x_continuous(breaks=c(0:max(df$VISIT))) 
+
+plot1
+
+
+summary(fit2)
+ 
+ 
+df$time <- factor(df$time)
+
+j = sort(levels(df$time))
+
+for (i in j) {
+ 
+df$time <- relevel(df$time, ref=i)
+
+f <- (lmer( yb ~ time* trt  + (1|top) + (1|mid) + (as.numeric(time)|low), data=df))
+print(summary(f))
+print(paste("Time",i))
+print(fixed.effects(f)['trt'])
+
+}
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+ 
 
 
 
