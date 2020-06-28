@@ -1,8 +1,9 @@
-
-## this is good...
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+## simulating hierarchical random effects and longitudinal response 
+## this is good...hybrid approach from my nested app and longitudinal modelling app
 ## need to include the baseline as covariate
-## hybrid approach from my nested app and longitudinal modelling app
-
+## need to predict, simulate and chaeck residuals...
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 rm(list=ls())
 
 set.seed(786)
@@ -286,9 +287,9 @@ print(pr1 + labs(y="Response", x = "Visit") +
 
 
 
-################################
-############## plot of treatment
-################################
+######################################################
+############## plot of treatment effect not from model
+######################################################
  
 
 df$time <- as.numeric(as.character(df$VISIT))
