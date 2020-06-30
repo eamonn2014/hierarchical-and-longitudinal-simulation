@@ -102,7 +102,7 @@ tau <- c(tau0, tau1)
 S   <- diag(tau) %*% S %*% diag(tau)
 U   <- mvrnorm(N, mu=mu, Sigma=S)
 
-p <- rle(lower.id)$lengths
+#p <- rle(lower.id)$lengths
 
 #--------------------------------------------------------------------------
 time = ave(lower.id, lower.id, FUN = seq_along)  # time variable
@@ -145,8 +145,8 @@ df$time <- factor(df$time)
 # no treatment effect plotted here, just a mean effect overall
 
 df$VISIT <- df$time
-df$value <- df$y        
-df$variable <- "BIOCHEM.B"
+# df$value <- df$y        
+# df$variable <- "BIOCHEM.B"
 df$ID <- factor(df$low)
 df$VISIT=as.numeric(levels(df$VISIT))[df$VISIT]
 
@@ -173,15 +173,13 @@ ggplot(df1) +
   stat_smooth(method = "lm", se = FALSE) +
   # Put the points on top of lines
   geom_point() +
-  facet_wrap("low") +
+  facet_wrap("ID") +
   labs(x = xlab, y = ylab) + 
   # We also need to help the x-axis, so it doesn't 
-  # create gridlines/ticks on 2.5 days
+  # create gridlines/ticks  
   scale_x_continuous(breaks = 0:last.visit)
 
  
-
-
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ols fits by id
 
 df_no_pooling <- lmList( y ~ (VISIT) | ID, data=df) %>% 
@@ -192,8 +190,7 @@ df_no_pooling <- lmList( y ~ (VISIT) | ID, data=df) %>%
   add_column(Model = "No pooling")  
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~pooled, lm ignoring ids
-
-# Fit a model on all the data pooled together
+# Fit a model on all the data pooled together, so ignoring ID
 m_pooled <- lm(y ~ VISIT  , data=df) 
 
 # Repeat the intercept and slope terms for each participant
@@ -206,17 +203,12 @@ df_pooled <- data_frame(
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~join pool no pool
 df1 <- df[,c("ID", "VISIT","y")]
 
-
 # Join the raw data so we can use plot the points and the lines.
 df_models <- bind_rows(df_pooled, df_no_pooling) %>% 
   left_join(df1, by = "ID")
 head(df_models)
 
-
-
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~plot both
-
-
 df1 <- df_models[ df_models$ID %in% sel,]
 df1$VISIT <- as.numeric(as.character(df1$VISIT))
 
@@ -239,7 +231,6 @@ p_model_comparison
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  
 m <- (lmer( y ~  1  + VISIT + (1+  (VISIT)|ID), data=df))
-
 m <- (lmer( y ~  VISIT + (  (VISIT)|ID), data=df))
 
 arm::display(m)
@@ -258,10 +249,7 @@ df_models2 <- (df_partial_pooling) %>%
   left_join(df1, by = "ID")
 head(df_models2)
 
-
-
 d <- rbind(df_models2, df_models)
-
 d <- d[ d$ID %in% sel,]
 
 d$VISIT <- as.numeric(as.character(d$VISIT))
