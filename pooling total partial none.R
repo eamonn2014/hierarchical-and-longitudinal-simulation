@@ -1,7 +1,3 @@
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ## simulating hierarchical random effects and longitudinal response 
 ## this is good...hybrid approach from my nested app and longitudinal modelling app
@@ -102,7 +98,7 @@ tau <- c(tau0, tau1)
 S   <- diag(tau) %*% S %*% diag(tau)
 U   <- mvrnorm(N, mu=mu, Sigma=S)
 
-#p <- rle(lower.id)$lengths
+p <- rle(lower.id)$lengths
 
 #--------------------------------------------------------------------------
 time = ave(lower.id, lower.id, FUN = seq_along)  # time variable
