@@ -111,9 +111,9 @@ ui <- fluidPage(theme = shinytheme("journal"), #https://www.rdocumentation.org/p
                                       
                                       
                                       # user input setup
-                                      sliderInput("N",
-                                                  div(h5(tags$span(style="color:blue", "total number of subjects"))),
-                                                  min=2, max=500, step=1, value=200, ticks=FALSE),
+                                      # sliderInput("N",
+                                      #             div(h5(tags$span(style="color:blue", "total number of subjects"))),
+                                      #             min=2, max=500, step=1, value=200, ticks=FALSE),
                                       
                                       
                                       ################
@@ -122,7 +122,7 @@ ui <- fluidPage(theme = shinytheme("journal"), #https://www.rdocumentation.org/p
                                                   min=0, max=1000, step=.5, value=100, ticks=FALSE),
                                       
                                       sliderInput("top",
-                                                  "Number of levels of top component (demarked by blue or thick lines)",
+                                                  "Number of levels of top component",
                                                   min=2, max=100, step=1, value=4, ticks=FALSE),
                                       
                                       sliderInput("range1", "Middle level: Randomly select using range or precisely select no of 'mid' groups within each top level group:", 
@@ -131,7 +131,7 @@ ui <- fluidPage(theme = shinytheme("journal"), #https://www.rdocumentation.org/p
                                       sliderInput("range2", "Lower level: Randomly select using range or precisely select no of 'low' groups within each mid level group:",
                                                   min = 2, max = 10, value = c(5, 10),ticks=FALSE),
                                       
-                                      sliderInput("replicates", "Randomly select using range or precisely select no of replicates",
+                                      sliderInput("replicates", "Visits",
                                                   min = 2, max = 50, value = c(3, 10), ticks=FALSE),
                                       sliderInput("a",
                                                   "True top level SD",
@@ -139,9 +139,9 @@ ui <- fluidPage(theme = shinytheme("journal"), #https://www.rdocumentation.org/p
                                       sliderInput("b",
                                                   "True middle level SD",
                                                   min=1, max=100, step=.5, value=2, ticks=FALSE),
-                                      sliderInput("c",
-                                                  "True lower level SD",
-                                                  min=1, max=100, step=.5, value=2, ticks=FALSE),
+                                      # sliderInput("c",
+                                      #             "True lower level SD",
+                                      #             min=1, max=100, step=.5, value=2, ticks=FALSE),
                                       # sliderInput("d",
                                       #             "True error",
                                       #             min=1, max=100, step=.5, value=2, ticks=FALSE),
@@ -351,7 +351,7 @@ server <- shinyServer(function(input, output   ) {
         
         
         
-        N <-      input$N
+       # N <-      input$N
         beta0 <-  input$intercept  
         beta1 <-  input$beta1
         sigma <-  input$sigma
@@ -370,7 +370,7 @@ server <- shinyServer(function(input, output   ) {
         replicates  <- input$replicates
         a <-           input$a  # random effect sds
         b <-           input$b
-        c <-           input$c
+      #  c <-           input$c
        # d  <-          input$d
           
         x1 <- range1[1]
@@ -420,7 +420,7 @@ server <- shinyServer(function(input, output   ) {
         
         
         # random effects
-        top.r <-    rnorm(top,          d,                a)    
+        top.r <-    rnorm(top,          beta0,                a)    
         middle.r <- rnorm(sum(middle),  0,                b)     
         #lower.r <-  rnorm(sum(lower),   0,                c)     # not needed as we create this later
         
@@ -430,7 +430,7 @@ server <- shinyServer(function(input, output   ) {
         top.id   <- cut(middle.id, c(0,cumsum(middle)), labels=FALSE)
         
         
-    return(list( N=N,  beta0=beta0, beta1=beta1, sigma=sigma, q=q, s=s, r=r, J=J, 
+    return(list(   beta0=beta0, beta1=beta1, sigma=sigma, q=q, s=s, r=r, J=J, 
                      interaction=interaction, trt=trt, top=top, range1=range1, range2=range2, replicates=replicates,
                      a=a, b=b, c=c, 
                  #d=d, 
@@ -450,7 +450,7 @@ server <- shinyServer(function(input, output   ) {
         
         sample <- random.sample()
         
-        n <-N        <-      sample$N 
+       # n <-N        <-      sample$N 
         intercept <-     sample$beta0 
         beta1    <-      sample$beta1
         sigma    <-      sample$sigma
@@ -564,8 +564,8 @@ server <- shinyServer(function(input, output   ) {
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # incorporating trt effect
         
-        trtB =  5
-        interB= 2.5
+        trtB =  trt
+        interB= interaction
         ### so we can expect 5+(2.5)*(1:9),, trt effect over time  7.5 10.0 12.5 15.0 17.5 20.0 22.5 25.0 27.5
 
         trt <- sample( c(1,0),  length(unique(lower.id)), replace=TRUE)  # trt indicator
