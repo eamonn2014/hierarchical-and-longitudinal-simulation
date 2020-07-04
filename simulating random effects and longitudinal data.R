@@ -1,11 +1,18 @@
+# top=.8338
+# mid=8.5985
+# low=18.4160
+# residual=50.4589
+# trt=4
+# slope=-.166
+# interaction =-.4
+
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ## simulating hierarchical random effects and longitudinal response 
 ## this is good...hybrid approach from my nested app and longitudinal modelling app
 ## need to include the baseline as covariate
-## need to predict, simulate and chaeck residuals...
+## need to predict, simulate and check residuals...
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     rm(list=ls())
-    
     set.seed(786)
     
     library(lme4)
@@ -21,8 +28,9 @@
     # design
     intercept =100 
     top = 5 # number of groups at top of hierarchy
-    # in the app this is seletable...
-    range1     = c(2, 10) ##app sample these, levels 
+    
+    # in the app this is selectable...
+    range1     = c(2, 10) ##app samples between these, levels 
     range2     = c(5, 10) ##app sample these
     replicates = c(3, 10) ##app sample these
     
@@ -33,13 +41,13 @@
     x5 <- replicates[1]
     x6 <- replicates[2]
     
-    # SDs
+    # random effect SDs
     a =20
     b =10 
     #c =2   not need as we add a random intercept and random slope later
     d =2
 
-# this is from my app so the sections below are not necessary for plain R code
+    # this is from my app so the sections below are not necessary for plain R code
     # seems that I need to use both c(x1,x2) c(x1:x2) so sample function works correctly
     
     if (x1==x2) {
@@ -133,14 +141,14 @@
   )
                               
   df <- as.data.frame(Data)
-  df$time <- df$time-1
+  df$time <- df$time-1  # set baseline to time=0
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # incorporating trt effect
  
   trtB =  5
   interB= 2.5
-  ### so we can expect 5+(2.5)*(1:9),, trt efect over time  7.5 10.0 12.5 15.0 17.5 20.0 22.5 25.0 27.5
+  ### so we can expect 5+(2.5)*(1:9),, trt effect over time  7.5 10.0 12.5 15.0 17.5 20.0 22.5 25.0 27.5
   
   trt <- sample( c(1,0),  length(unique(lower.id)), replace=TRUE)  # trt indicator
   df$trt <- rep(trt, times=p)
@@ -191,12 +199,19 @@
   summary(fit2)
   summary(fit3)
   summary(fit.res)
+  
+  #########################################
+  
+  df$predicted <- predict (fit3, newdata=df, allow.new.levels=T)
+  df$simulated <- simulate(fit3, seed=1, newdata=df , re.form=NA,
+                           allow.new.levels=F)$sim_1
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~plot not model based~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # no treatment effect plotted here, just a mean effect overall
 
   df$VISIT <- df$time
   df$value <- df$y2       # ar1 is th ey response
+ # df$value <- df$simulated
   df$variable <- "BIOCHEM.B"
   df$ID <- factor(df$low)
   df$VISIT=as.numeric(levels(df$VISIT))[df$VISIT]
@@ -338,26 +353,86 @@
   
  
 
+  # below here chckong model diagnostics
 
 
 
+  plot(fit3)
+
+  ggplot(data.frame(eta=predict(fit3,type="link"),pearson=residuals(fit3,type="pearson")),
+                aes(x=eta,y=pearson)) +
+         geom_point() +
+         theme_bw()
+
+  qqnorm(residuals(fit3))
 
 
+  ggplot(data.frame(lev=hatvalues(fit3),pearson=residuals(fit3,type="pearson")),
+         aes(x=lev,y=pearson)) +
+    geom_point() +
+    theme_bw()
+
+  #https://stackoverflow.com/questions/13847936/plot-random-effects-from-lmer-lme4-package-using-qqmath-or-dotplot-how-to-mak
+  coef(fit3)
+ 
+ # https://r.789695.n4.nabble.com/R-lme4-package-Fitted-values-and-residuals-td812638.html
+  fitted(fit3)
+  resid(fit3)
+  
+  fixef(fit3)
+
+  #and a list of the conditional modes of the random effects (also called
+                  #                                           the BLUPs) as
+  
+  ranef(fit3)
+  
 
 
+  lattice::qqmath(ranef(fit3, condVar = TRUE), strip = FALSE)$mid
+  
+  
+  lattice::qqmath(ranef(fit3, condVar = TRUE), strip = FALSE)$top
+  #https://stackoverflow.com/questions/13847936/plot-random-effects-from-lmer-lme4-package-using-qqmath-or-dotplot-how-to-mak
 
 
+  qqnorm(ranef(fit3)$low[,1] )
+  qqline(ranef(fit3)$low[,1], col = "red")
+  qqnorm(ranef(fit3)$low[,2] )
+  qqline(ranef(fit3)$low[,2], col = "red")
+  
+  
+  
+  p <- ggplot(df, aes(x = time, y = y, colour = ID)) +
+    geom_point(size=3) +
+    geom_line(aes(y = predict(fit3)),size=1) +
+    theme(panel.background=element_blank(),
+          # axis.text.y=element_blank(),
+          # axis.ticks.y=element_blank(),
+          # https://stackoverflow.com/questions/46482846/ggplot2-x-axis-extreme-right-tick-label-clipped-after-insetting-legend
+          # stop axis being clipped
+          plot.title=element_text(), plot.margin = unit(c(5.5,12,5.5,5.5), "pt"),
+          legend.text=element_text(size=12),
+          legend.title=element_text(size=14),
+          legend.position="none",
+          axis.text.x  = element_text(size=10),
+          axis.text.y  = element_text(size=10),
+          axis.line.x = element_line(color="black"),
+          axis.line.y = element_line(color="black"))
+  print(p)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+  
+  
+  df$predicted <- predict (fit3, newdata=df, allow.new.levels=T)
+  df$simulated <- simulate(fit3, seed=1, newdata=df , re.form=NA,
+                          allow.new.levels=F)$sim_1
+  
+  
+  library(sjstats)
+  performance::icc(fit3)
+  performance::model_performance(fit3, metrics = "all", verbose = TRUE)
+  
+  
+  
+  
+  
+  
