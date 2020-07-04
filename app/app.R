@@ -221,20 +221,20 @@ ui <- fluidPage(theme = shinytheme("journal"), #https://www.rdocumentation.org/p
                                   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~end of section to add colour     
                                   tabPanel("A1. Plot & LMM", 
                                            
-                                          #  div(plotOutput("reg.plot1", width=fig.width, height=fig.height)),  
+                                           div(plotOutput("reg.plot1", width=fig.width, height=fig.height)),  
                                           #  #h4(paste("Figure 1. xxxxxxxxxxxxxxx")), 
                                           #  h3(" "),
                                           #  div(plotOutput("reg.plot3", width=fig.width, height=fig.height)), 
                                           # # h4(paste("Figure 2. xxxxxxxxxxxxxxx")), 
                                           #  div(class="span7", verbatimTextOutput("reg.summary")),
                                           # h4(paste("Table 1. xxxxxxxxxxxxxxx")), 
-                                          div(class="span7", verbatimTextOutput("reg.summary0407")),
+                                         # div(class="span7", verbatimTextOutput("reg.summary0407")),
                                            
                                   ) ,
                                   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                                   tabPanel("A2. GLS", value=3, 
                                            
-                                           div(class="span7", verbatimTextOutput("reg.summary1")),
+                                           div(class="span7", verbatimTextOutput("reg.summary0407")),
                                            #h4(paste("Table 2. xxxxxxxxxxxxxxx")), 
                                            
                                   ) ,
@@ -519,19 +519,7 @@ server <- shinyServer(function(input, output   ) {
     #    middle.r <- rnorm(sum(middle),  0,                middle)
         #######################################################################
         
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
+
         
         ### simulate (correlated) random effects for intercepts and slopes
         mu  <- c(0,0)
@@ -612,50 +600,50 @@ server <- shinyServer(function(input, output   ) {
     # creating baseline variable, I want treatment effect to start after baseline,
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     
-    make.data2 <- reactive({
-        
-        sample <- random.sample()
-        
-        N         <-  sample$N 
-        intercept <-  sample$beta0 
-        slope     <-  sample$beta1
-        error     <-  sample$sigma
-        time.ref <-  sample$time.ref
-        flat.df        <- make.data()$flat.df
-        random.effects <- make.data()$random.effects
-        p <- make.data()$p
-        
-        nbaseline <- flat.df[(flat.df$time !=0),]  
-        
-        #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        # select all observations that are baseline
-        baseline <- flat.df[(flat.df$time ==0),]  
-        # overwrite so that no treatment effect manifests at baseline
-        baseline$alpha <- intercept + random.effects[, 1]
-        baseline$beta <-  slope     + random.effects[, 2]
-        
-        # use tmp later for a plot
-        tmp <- baseline <- within(baseline, y <-  alpha + 0 * beta + error * rnorm(n = N) )
-        
-        baseline <- baseline[,c("unit","y"   )] 
-        names(baseline) <- c("unit","baseline"  )  # rename y to baseline
-        
-        # merge baseline and no baseline
-        both <- merge (baseline , nbaseline  , all=TRUE)
-        
-        d <-  both[, c("unit", "baseline", "treat", "time", "y")]
-        d$time<-factor(d$time)
-        d$treat<-factor(d$treat)
-        
-        d$time <- relevel(d$time, ref=time.ref)
-        
-        # just put in random countries so no association
-        #d$country <-  factor(sort(rep(sample(1:8 ),   N, times=J-1)))   # balanced
-        d$country <- factor(rep(sample(1:8 , N, replace=T), times=p-1))  # unbalanced
-        
-        return(list( d=d , tmp=tmp, nbaseline=nbaseline) )
-        
-    }) 
+    # make.data2 <- reactive({
+    #     
+    #     sample <- random.sample()
+    #     
+    #     N         <-  sample$N 
+    #     intercept <-  sample$beta0 
+    #     slope     <-  sample$beta1
+    #     error     <-  sample$sigma
+    #     time.ref <-  sample$time.ref
+    #     flat.df        <- make.data()$flat.df
+    #     random.effects <- make.data()$random.effects
+    #     p <- make.data()$p
+    #     
+    #     nbaseline <- flat.df[(flat.df$time !=0),]  
+    #     
+    #     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    #     # select all observations that are baseline
+    #     baseline <- flat.df[(flat.df$time ==0),]  
+    #     # overwrite so that no treatment effect manifests at baseline
+    #     baseline$alpha <- intercept + random.effects[, 1]
+    #     baseline$beta <-  slope     + random.effects[, 2]
+    #     
+    #     # use tmp later for a plot
+    #     tmp <- baseline <- within(baseline, y <-  alpha + 0 * beta + error * rnorm(n = N) )
+    #     
+    #     baseline <- baseline[,c("unit","y"   )] 
+    #     names(baseline) <- c("unit","baseline"  )  # rename y to baseline
+    #     
+    #     # merge baseline and no baseline
+    #     both <- merge (baseline , nbaseline  , all=TRUE)
+    #     
+    #     d <-  both[, c("unit", "baseline", "treat", "time", "y")]
+    #     d$time<-factor(d$time)
+    #     d$treat<-factor(d$treat)
+    #     
+    #     d$time <- relevel(d$time, ref=time.ref)
+    #     
+    #     # just put in random countries so no association
+    #     #d$country <-  factor(sort(rep(sample(1:8 ),   N, times=J-1)))   # balanced
+    #     d$country <- factor(rep(sample(1:8 , N, replace=T), times=p-1))  # unbalanced
+    #     
+    #     return(list( d=d , tmp=tmp, nbaseline=nbaseline) )
+    #     
+    # }) 
     
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # run lmer and gls (and get contrasts) on the data were treatment effect starts after time 0
@@ -763,103 +751,98 @@ server <- shinyServer(function(input, output   ) {
     
     output$reg.plot1 <- renderPlot({ 
         
-        J <-  input$J
-        all <- make.data()$flat.df
-        all$time <- as.numeric(as.character(all$time ))
+        df <- make.data()$df
         
-        if (input$Plot1 == "Overall") {
-            
-            ggplot(all,   aes (x = time, y = y, group = unit, color = treat)) +
-                geom_line() + geom_point() + ylab("Response") + xlab("Visit") +
-                stat_summary(fun=mean,geom="line", lwd=1,aes(group=treat  ,    color=paste(treat, "Mean")     ) )+
-                scale_color_manual(values=colz)+
-                #theme(legend.position="top") +
-                #xlim(0, J) +
-                scale_x_continuous(breaks=c(0:J)) +
-                
-                theme_bw() +
-                theme(#panel.background=element_blank(),
-                    # axis.text.y=element_blank(),
-                    # axis.ticks.y=element_blank(),
-                    # https://stackoverflow.com/questions/46482846/ggplot2-x-axis-extreme-right-tick-label-clipped-after-insetting-legend
-                    # stop axis being clipped
-                    plot.title=element_text(size = 18), plot.margin = unit(c(5.5,12,5.5,5.5), "pt"),
-                    legend.text=element_text(size=14),
-                    legend.title=element_text(size=14),
-                    legend.position="top",
-                    axis.text.x  = element_text(size=15),
-                    axis.text.y  = element_text(size=15),
-                    axis.line.x = element_line(color="black"),
-                    axis.line.y = element_line(color="black"),
-                    plot.caption=element_text(hjust = 0, size = 7),
-                    strip.text.x = element_text(size = 16, colour = "black", angle = 0),
-                    axis.title.y = element_text(size = rel(1.5), angle = 90),
-                    axis.title.x = element_text(size = rel(1.5), angle = 0),
-                    #panel.grid.major.x = element_line(color = "grey80", linetype="dotted", size = 1),
-                    panel.grid.major.y = element_line(color = "grey80", linetype="dotted", size = 1),
-                    strip.background = element_rect(colour = "black", fill = "#ececf0"),
-                    panel.background = element_rect(fill = '#ececf0', colour = '#ececf0'),
-                    plot.background = element_rect(fill = '#ececf0', colour = '#ececf0'))
-            
-            #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Individual profiles
-            #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            
-        }  else  if (input$Plot1 == "Individual") {
-            
-            i <- as.numeric(unlist(strsplit(input$vec1,",")))
-            
-            #  if 999 is entered all subjects are shown
-            
-            if("999" %in% i) {
-                
-                dd<-all #d
-                
-            } else {
-                
-                
-                dd <- all[all$unit %in% i,]
-            }
+        
+        df$VISIT <- df$time
+        df$value <- df$y2       # ar1 is th ey response
+        # df$value <- df$simulated
+        df$variable <- "BIOCHEM.B"
+        df$ID <- factor(df$low)
+        #df$VISIT=as.numeric(levels(df$VISIT))[df$VISIT]
+        
+        df_summary <- df %>% # the names of the new data frame and the data frame to be summarised
+            group_by(VISIT, variable) %>%                # the grouping variable
+            summarise(mean_PL = mean(value, na.rm=TRUE),  # calculates the mean of each group
+                      sd_PL = sd(value, na.rm=TRUE),      # calculates the sd of each group
+                      n_PL = length(na.omit(value)),      # calculates the sample size per group
+                      SE_PL = sd(value, na.rm=TRUE)/sqrt(length(na.omit(value)))) # SE of each group
+        
+        df_summary1 <- merge(df, df_summary)  # merge stats to dataset
+        
+        df_summary1$L2SE <- df_summary1$mean_PL - 2*df_summary1$SE_PL
+        df_summary1$H2SE <- df_summary1$mean_PL + 2*df_summary1$SE_PL
+        
+        
+        pr1 <- ggplot((df_summary1), aes(x = VISIT, y =value, color = ID)) +
+            geom_line( size=.5, alpha=0.2) +
+            #scale_color_gradient(low = "blue", high = "red")+
+            #scale_color_brewer(palette = "Dark2") +
+            stat_summary(geom="line",  fun=mean, colour="black", lwd=0.5) +  # , linetype="dashed"
+            stat_summary(geom="point", fun=mean, colour="black") +
+            geom_errorbar(data=(df_summary1), 
+                          aes( ymin=L2SE, ymax=H2SE ), color = "black",
+                          width=0.05, lwd = 0.05) +
+            scale_y_continuous(expand = c(.1,0) ) +
             
             
-            px <-   ggplot(all,   aes (x = time, y = y, group = unit, color = treat)) +
-                geom_line() + geom_point() + ylab("Response") + xlab("Visit") +
-                stat_summary(fun=mean,geom="line", lwd=1,aes(group=treat  ,    color=paste(treat, "Mean")     ) )+
-                scale_color_manual(values=colz)+
-                #theme(legend.position="top") +
-                #xlim(0, J) +
-                scale_x_continuous(breaks=c(0:J)) +
-                
-                theme_bw() +
-                theme(#panel.background=element_blank(),
-                    # axis.text.y=element_blank(),
-                    # axis.ticks.y=element_blank(),
-                    # https://stackoverflow.com/questions/46482846/ggplot2-x-axis-extreme-right-tick-label-clipped-after-insetting-legend
-                    # stop axis being clipped
-                    plot.title=element_text(size = 18), plot.margin = unit(c(5.5,12,5.5,5.5), "pt"),
-                    legend.text=element_text(size=14),
-                    legend.title=element_text(size=14),
-                    legend.position="top",
-                    axis.text.x  = element_text(size=15),
-                    axis.text.y  = element_text(size=15),
-                    axis.line.x = element_line(color="black"),
-                    axis.line.y = element_line(color="black"),
-                    plot.caption=element_text(hjust = 0, size = 7),
-                    strip.text.x = element_text(size = 16, colour = "black", angle = 0),
-                    axis.title.y = element_text(size = rel(1.5), angle = 90),
-                    axis.title.x = element_text(size = rel(1.5), angle = 0),
-                    #panel.grid.major.x = element_line(color = "grey80", linetype="dotted", size = 1),
-                    panel.grid.major.y = element_line(color = "grey80", linetype="dotted", size = 1),
-                    strip.background = element_rect(colour = "black", fill = "#ececf0"),
-                    panel.background = element_rect(fill = '#ececf0', colour = '#ececf0'),
-                    plot.background = element_rect(fill = '#ececf0', colour = '#ececf0'))
             
-            pxx <- px +  geom_line(data = dd,
-                                   aes(group=unit,x = time, y = y),    linetype="solid", col='red', size=1) 
+            scale_x_continuous(breaks = c(unique(df$VISIT)),
+                               labels = 
+                                   c(unique(df$VISIT))
+            ) +
             
-            print(pxx)
             
-        }   
+            theme(
+                # get rid of panel grids
+                panel.grid.major = element_blank(),
+                panel.grid.minor = element_blank(),
+                # Change plot and panel background
+                plot.background=element_rect(fill = "white"),
+                panel.background = element_rect(fill = 'black'),
+                # Change legend
+                legend.position = c(0.6, 0.07),
+                legend.direction = "horizontal",
+                legend.background = element_rect(fill = "black", color = NA),
+                legend.key = element_rect(color = "gray", fill = "black"),
+                legend.title = element_text(color = "white"),
+                legend.text = element_text(color = "white")
+            ) +
+            
+            
+            EnvStats::stat_n_text(size = 4, y.pos = max(df_summary1$value, na.rm=T)*1.1 , y.expand.factor=0, 
+                                  angle = 0, hjust = .5, family = "mono", fontface = "plain") + 
+            
+            theme(panel.background=element_blank(),
+                  # axis.text.y=element_blank(),
+                  # axis.ticks.y=element_blank(),
+                  # https://stackoverflow.com/questions/46482846/ggplot2-x-axis-extreme-right-tick-label-clipped-after-insetting-legend
+                  # stop axis being clipped
+                  plot.title=element_text(), plot.margin = unit(c(5.5,12,5.5,5.5), "pt"),
+                  legend.text=element_text(size=12),
+                  legend.title=element_text(size=14),
+                  legend.position="none",
+                  axis.text.x  = element_text(size=10),
+                  axis.text.y  = element_text(size=10),
+                  axis.line.x = element_line(color="black"),
+                  axis.line.y = element_line(color="black"),
+                  plot.caption=element_text(hjust = 0, size = 7))
+        
+        
+        print(pr1 + labs(y="Response", x = "Visit") + 
+                  ggtitle(paste0("Individual responses ",
+                                 length(unique(df$ID))," patients & arithmetic mean with 95% CI shown in black\nNumber of patient values at each time point") )
+        )
+        
+        
+        ######################################################
+        
+        
+        
+        
+        
+        
+        
         
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # end of spaghetti plots of data at which trt effect starts after baseline allowing highlighting of selected patients
