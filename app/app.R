@@ -234,10 +234,10 @@ ui <- fluidPage(theme = shinytheme("journal"), #https://www.rdocumentation.org/p
                               #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                               tabPanel("B2. GLS & LMM", 
                                        
-                                       #     div(class="span7", verbatimTextOutput("reg.summaryb1")),
-                                       #     h4(paste("Table 4. xxxxxxxxxxxxxxx")), 
-                                       #  div(class="span7", verbatimTextOutput("reg.summaryb2")),
-                                       #     h4(paste("Table 5. xxxxxxxxxxxxxxx")), 
+                                         div(class="span7", verbatimTextOutput("reg.summaryb1")),
+                                           h4(paste("Table 4. xxxxxxxxxxxxxxx")), 
+                                        div(class="span7", verbatimTextOutput("reg.summaryb2")),
+                                            h4(paste("Table 5. xxxxxxxxxxxxxxx")), 
                                        
                               ) ,
                               #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -246,8 +246,8 @@ ui <- fluidPage(theme = shinytheme("journal"), #https://www.rdocumentation.org/p
                                        #   div(plotOutput("reg.plot2b", width=fig.width, height=fig.height)),  
                                        #  h4(paste("Figure 6.  xxxxxxxxxxxxxxx")), 
                                        
-                                       #  div(class="span7", verbatimTextOutput("reg.summaryb3copy")),
-                                       #    h4(paste("Table 6. xxxxxxxxxxxxxxx.")), 
+                                        div(class="span7", verbatimTextOutput("reg.summaryb3")),
+                                           h4(paste("Table 6. xxxxxxxxxxxxxxx.")), 
                                        
                               ) ,
                               #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -582,9 +582,134 @@ server <- shinyServer(function(input, output   ) {
     return(list(summary))
     
   })  
+  #########################################################################################################################
+  
+  
+  
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # run lmer and gls (and get contrasts) on the data were treatment effect starts after time 0
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  
+  fit.reg <- reactive({
+    
+    sample <- random.sample()
+    
+    d<- make.data()$df
+    
+    df$time <- factor(df$time)
+    
+   # d$treat <- relevel(d$treat, ref= "Placebo")  # NEW
+    
+    (fit <- lmer( y ~ time* trt  + (1|top) + (1|mid) + (as.numeric(time)|low), data=df))
+    
+    
+    ddz <<- datadist(df)  # need the double in this environ <<
+    options(datadist='ddz')
+    (fit.res <-  
+        tryCatch(Gls(yb ~ time* trt  ,
+                     correlation=corAR1(form=~ as.numeric(time)|low), 
+                     weights=varIdent(form=~1|time),
+                     df, na.action=na.omit) , 
+                 error=function(e) e))
+    
+    
+    summary(fit)
+    summary(fit.res)
+    
+    
+    # ddz <<- datadist(d)  # need the double in this environ <<
+    # options(datadist='ddz')
+    # 
+    # 
+    # (fit.res <-  
+    #     tryCatch(Gls(y  ~ country + baseline * time + time * treat ,
+    #                  correlation=corSymm(form = ~as.numeric(time) | unit) ,
+    #                  weights=varIdent(form=~1|time),
+    #                  d, x=TRUE,
+    #                  na.action=na.exclude ),  
+    #              error=function(e) e)
+    # ) 
+    # 
+    # J <-  input$J
+    time. <- unique(df$time)
+    
+    
+    # k1 <- contrast(fit.res, list(time=time.,  treat ="Placebo", baseline=0, country=1),
+    #                         list(time=time.,  treat = "Active"  , baseline=0, country=1))
+    # 
+    # k1a <- contrast(fit.res, list(time=time.,  treat ="Placebo",   baseline=median(d$baseline), country=1),
+    #                          list(time=time.,  treat = "Active"  , baseline=median(d$baseline), country=1))
+    
+    k1a <- rms::contrast(fit.res, list(time=time.,  trt =1 ),
+                         list(time=time.,  trt =0 ))
+    
+    
+    x <- as.data.frame(k1a[c('time', 'Contrast', 'Lower', 'Upper')]) 
+    
+    namez <- c("Follow-up Visit", "Active - Placebo", "Lower 95%CI","Upper 95%CI")
+    
+    names(x) <- namez
+    
+    return(list( fit.lmer= summary(fit) , fit.res=fit.res , x=x))
+    
+  })   
+  
+  
+  
+  output$reg.summaryb1 <- renderPrint({
+    
+    summary <- fit.reg()$fit.res
+    
+    return(list(summary))
+    
+  })  
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  
+  output$reg.summaryb2 <- renderPrint({
+    
+    summary <- fit.reg()$fit.lmer
+    
+    return(list(summary))
+    
+  })  
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  
+  output$reg.summaryb3 <- output$reg.summaryb3 <- renderPrint({
+    
+    summary <- fit.reg()$x
+    
+    return(list(summary))
+    
+  })  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   
 
- 
+ ##########################################################################################################################
   output$reg.plot1 <- renderPlot({ 
     
     df <- make.data()$df
