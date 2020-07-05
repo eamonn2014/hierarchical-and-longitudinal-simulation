@@ -863,7 +863,11 @@ server <- shinyServer(function(input, output   ) {
                              length(unique(df$ID))," patients & arithmetic mean with 95% CI shown in black\nNumber of patient values at each time point") )
       )
       
+      pxx <- pr1 +  geom_line(data = dd,
+                             aes(group=ID, x = VISIT, y = value),    linetype="solid", col='red', size=1) 
       
+   
+      print(pxx)
     
       
     }   
