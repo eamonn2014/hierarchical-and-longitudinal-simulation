@@ -77,6 +77,16 @@ ui <- fluidPage(theme = shinytheme("journal"), #https://www.rdocumentation.org/p
                                     tags$style(HTML('#resample{background-color:orange}'))
                                   ),
                                   
+                                  # selectInput("Plot1",
+                                  #             div(h5(tags$span(style="color:blue", "Select plot"))),
+                                  #             choices=c("Overall","Individual" )),
+                                  # 
+                                  # textInput('vec1', 
+                                  #           div(h5(tags$span(style="color:blue", "Select patient(s) to view. If 'Select plot' 'Individual' is chosen, enter sample ID(s) (comma delimited); 
+                                  #     enter 999 to show all profiles"))),
+                                  #           "1,2,3,4"),
+                                  # 
+                                  
                                   selectInput("Plot1",
                                               div(h5(tags$span(style="color:blue", "Select plot"))),
                                               choices=c("Overall","Individual" )),
@@ -85,6 +95,7 @@ ui <- fluidPage(theme = shinytheme("journal"), #https://www.rdocumentation.org/p
                                             div(h5(tags$span(style="color:blue", "Select patient(s) to view. If 'Select plot' 'Individual' is chosen, enter sample ID(s) (comma delimited); 
                                       enter 999 to show all profiles"))),
                                             "1,2,3,4"),
+                                  
                                   
                                   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                                   
@@ -733,17 +744,16 @@ server <- shinyServer(function(input, output   ) {
   
  
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # plot of treatment effect contrasts for data at which trt effect starts at baseline
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # start of spaghetti plots of data at which trt effect starts after baseline allowing highlighting of selected patients
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # --------------------------------------------------------------------------
+  # -----------------------------------------------OVERALL PLOT
+  # ---------------------------------------------------------------------------
   
   output$reg.plot2 <- renderPlot({ 
     
-    df <- make.data()$df
-    # 
-    # df_summary1$mid <- factor(df_summary1$mid)
-    # df_summary1$top <- factor(df_summary1$top)
-    # 
-    level<- as.numeric(    eval(parse(text= (input$level)) ) )
+    df<- make.data()$df
     
     
     df$VISIT <- df$time
@@ -821,30 +831,46 @@ server <- shinyServer(function(input, output   ) {
             plot.caption=element_text(hjust = 0, size = 7))
     
     
-    pr2 <- pr1 + labs(y="Response", x = "Visit") + 
-      ggtitle(paste0("Individual responses ",
-                     length(unique(df$ID))," patients & arithmetic mean with 95% CI shown in black\nNumber of patient values at each time point") ) 
     
     
+    if (input$Plot1 == "Overall") {
+
+      
+      print(pr1 + labs(y="Response", x = "Visit") + 
+              ggtitle(paste0("Individual responses ",
+                             length(unique(df$ID))," patients & arithmetic mean with 95% CI shown in black\nNumber of patient values at each time point") )
+      )
+  
+   
+    }  else  if (input$Plot1 == "Individual") {
+      
+      i <- as.numeric(unlist(strsplit(input$vec1,",")))
+   
+      
+      if("999" %in% i) {
+        
+        dd<-df #d
+        
+      } else {
+        
+        
+        dd <- df[df$ID %in% i,]
+      }
+      
+           
+      print(pr1 + labs(y="Response", x = "Visit") + 
+              ggtitle(paste0("Individual responses ",
+                             length(unique(df$ID))," patients & arithmetic mean with 95% CI shown in black\nNumber of patient values at each time point") )
+      )
+      
+      
     
-    
-    
-   # pr2 <- pr2 + gghighlight(input$group == input$level , label_key = ID) 
-    
-    print(pr2)
-    
+      
+    }   
+  })
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # end of spaghetti plots of data at which trt effect starts after baseline allowing highlighting of selected patients
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    
-  }) 
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # boxplots of data at which trt effect starts at baseline allowing highlighting of selected patients
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  
-  # --------------------------------------------------------------------------
-  # -----------------------------------------------OVERALL PLOT
-  # ---------------------------------------------------------------------------
  
   
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
