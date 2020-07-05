@@ -68,7 +68,9 @@ ui <- fluidPage(theme = shinytheme("journal"), #https://www.rdocumentation.org/p
                                   br(), br(),
                                   tags$style(".well {background-color:#b6aebd ;}"), 
                                   
-                                  div(h5(tags$span(style="color:blue", "Select the parameters using the sliders below...be patient as the GLS models can take ~30 secs to run..."))),
+                                  div(h5(tags$span(style="color:blue", "Select the parameters using the sliders below...the total number of patients is equal to, 
+                                  the top level x middle level x lower component if the sliders select a unique value (and not a random range)
+                                                   "))),
                                   tags$head(
                                     tags$style(HTML('#ab1{background-color:orange}'))
                                   ),
@@ -77,27 +79,7 @@ ui <- fluidPage(theme = shinytheme("journal"), #https://www.rdocumentation.org/p
                                     tags$style(HTML('#resample{background-color:orange}'))
                                   ),
                                   
-                                  # selectInput("Plot1",
-                                  #             div(h5(tags$span(style="color:blue", "Select plot"))),
-                                  #             choices=c("Overall","Individual" )),
-                                  # 
-                                  # textInput('vec1', 
-                                  #           div(h5(tags$span(style="color:blue", "Select patient(s) to view. If 'Select plot' 'Individual' is chosen, enter sample ID(s) (comma delimited); 
-                                  #     enter 999 to show all profiles"))),
-                                  #           "1,2,3,4"),
-                                  # 
-                                  
-                                  # selectInput("Plot1",
-                                  #             div(h5(tags$span(style="color:blue", "Select plot"))),
-                                  #             choices=c("Overall","Individual" )),
-                                  # 
-                                  # textInput('vec1', 
-                                  #           div(h5(tags$span(style="color:blue", "Select patient(s) to view. If 'Select plot' 'Individual' is chosen, enter sample ID(s) (comma delimited); 
-                                  #     enter 999 to show all profiles"))),
-                                  #           "1,2,3,4"),
-                                  
-                                  
-                                  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
            
                                   
                                   ################
@@ -118,7 +100,8 @@ ui <- fluidPage(theme = shinytheme("journal"), #https://www.rdocumentation.org/p
                                                                                             min = 2, max = 10, value = c(5, 10),ticks=FALSE),
                                   
                                   sliderInput("replicates",
-                                              div(h5(tags$span(style="color:blue", "Visits"))),
+                                              div(h5(tags$span(style="color:blue", "Visits (after first selection data mav be missing at random. 
+                                                               Second selection is maximum visit."))),
                                                min = 2, max = 50, value = c(3, 10), ticks=FALSE),
                                   
                                   sliderInput("a",
@@ -131,7 +114,7 @@ ui <- fluidPage(theme = shinytheme("journal"), #https://www.rdocumentation.org/p
                                   
                                   sliderInput("trt.effect",
                                               div(h5(tags$span(style="color:blue", "Treatment effect"))),
-                                              min = -20, max = 20, value = c(16), step=1, ticks=FALSE),
+                                              min = -50, max = 50, value = c(16), step=1, ticks=FALSE),
                                   
                                   sliderInput("interaction",    
                                               div(h5(tags$span(style="color:blue", "Treatment time interaction"))),
@@ -143,24 +126,22 @@ ui <- fluidPage(theme = shinytheme("journal"), #https://www.rdocumentation.org/p
                                               min = -5, max =5, step=.5, value = c(0),ticks=FALSE),
                                   
                                   sliderInput("q",   
-                                              div(h5(tags$span(style="color:blue", "True intercept SD"))),
+                                              div(h5(tags$span(style="color:blue", "True person intercept SD"))),
                                               min = .1, max = 20, value = c(17), step=.5, ticks=FALSE),
                                   
                                   sliderInput("s",      
-                                              div(h5(tags$span(style="color:blue", "True slope SD"))),
+                                              div(h5(tags$span(style="color:blue", "True person slope SD"))),
                                               min = .01, max = 10, value = c(.8),step=.01,  ticks=FALSE),
                                   
                                   sliderInput("r", 
-                                              div(h5(tags$span(style="color:blue", "True intercept slope correlation"))),
+                                              div(h5(tags$span(style="color:blue", "True person intercept slope correlation"))),
                                               min = -1, max = 1, value = c(.95), step=0.05, ticks=FALSE),
                                   
                                   sliderInput("sigma",  
                                               div(h5(tags$span(style="color:blue",  "True error SD"  ))),
                                               min =.01, max = 30, value = c(26), step=.1, ticks=FALSE),
                                   
-                                  # sliderInput("time.ref",
-                                  #             div(h5(tags$span(style="color:blue", "Estimate treatment effect at this visit"))),
-                                  #             min=1, max=10, step=1, value=4, ticks=FALSE),
+                        
                                   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                                   
                                   div(p( strong("References:"))),  
@@ -244,6 +225,9 @@ ui <- fluidPage(theme = shinytheme("journal"), #https://www.rdocumentation.org/p
                                        
                                        #     div(plotOutput("reg.plot33", width=fig.width, height=fig.height)),  
                                        # h4(paste("Figure 5. xxxxxxxxxxxxxxx")), 
+                                       div(plotOutput("reg.plot3", width=fig.width, height=fig.height)),
+                                       
+                                       
                                        
                               ) ,
                               
@@ -410,7 +394,7 @@ server <- shinyServer(function(input, output   ) {
     top.id   <- cut(middle.id, c(0,cumsum(middle)), labels=FALSE)
     
     
-    return(list(   beta0=beta0, beta1=beta1, sigma=sigma, q=q, s=s, r=r, J=J, 
+    return(list(   beta0=beta0, beta1=beta1, sigma=sigma, q=q, s=s, r=r, 
                    interaction=interaction, trt=trt, top=top, range1=range1, range2=range2, replicates=replicates,
                    a=a, b=b, c=c, 
                    #d=d, 
@@ -437,7 +421,7 @@ server <- shinyServer(function(input, output   ) {
     tau0        <-   sample$q # standard deviations for the intercept 
     tau1        <-   sample$s # standard deviations for slope
     tau01        <-  sample$r # random effects correlation of slope internet
-    J        <-      sample$J
+    #J        <-      sample$J
     time.ref <-      sample$time.ref
     interaction<-    sample$interaction
     trt   <-         sample$trt
@@ -479,40 +463,40 @@ server <- shinyServer(function(input, output   ) {
      # x6 <- 5
      # 
      # if (x1==x2) {
-     #   
+     # 
      #   middle <-  sample(c(x1,x2),   top, replace=TRUE)    # ditto groups in each top level 6
-     #   
+     # 
      # } else {
-     #   
+     # 
      #   middle <-  sample(c(x1:x2),   top, replace=TRUE)    # ditto groups in each top level 6
      # }
      # 
      # 
      # if (x3==x4) {
-     #   
+     # 
      #   lower <-   sample(c(x3,x4),   sum(middle), replace=TRUE )
-     #   
+     # 
      # } else {
-     #   
+     # 
      #   lower <-   sample(c(x3:x4),   sum(middle), replace=TRUE )
-     #   
+     # 
      # }
      # 
      # if (x5==x6) {
-     #   
+     # 
      #   replicates <-  sample(c(x5,x6),   sum(lower), replace=TRUE )
-     #   
+     # 
      # } else {
-     #   
-     #   replicates <-  sample(c(x5:x6),   sum(lower), replace=TRUE ) 
-     #   
+     # 
+     #   replicates <-  sample(c(x5:x6),   sum(lower), replace=TRUE )
+     # 
      # }
      # 
      # n <- sum(replicates)
-     # top.r <-    rnorm(top,          intercept,                5)    
-     # middle.r <- rnorm(sum(middle),  0,                5)     
+     # top.r <-    rnorm(top,          intercept,                5)
+     # middle.r <- rnorm(sum(middle),  0,                5)
      # 
-     # lower.id <- rep(seq_len(sum(lower)), replicates )        
+     # lower.id <- rep(seq_len(sum(lower)), replicates )
      # middle.id <- cut(lower.id, c(0,cumsum(lower)),  labels=FALSE)
      # top.id   <- cut(middle.id, c(0,cumsum(middle)), labels=FALSE)
      # ar.val=.66
@@ -852,6 +836,95 @@ server <- shinyServer(function(input, output   ) {
     # end of spaghetti plots of data at which trt effect starts after baseline allowing highlighting of selected patients
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  
+  
+  output$reg.plot3 <- renderPlot({ 
+    
+    sample <- random.sample()
+ 
+    interaction<-    sample$interaction
+    trt   <-         sample$trt
+    
+    df        <- make.data()$df
+    df$y      <- df$yb
+    df$unit   <- df$low
+    df$treat  <- factor(df$trt)
+    
+  #   pd <- position_dodge(.4)
+  #   
+  #   plot1 <-  ggplot(df,   aes (x = time, y = y, group = unit, color = treat)) +
+  #     geom_line() + 
+  #     geom_point() + ylab("response") + xlab("visit") +
+  #     stat_summary(fun=mean,geom="line", colour=("red"),lwd=2, aes(group=treat ) ) + 
+  #     scale_color_manual(values=c('black','orange'))+
+  #     theme(legend.position="top") +
+  #      scale_x_continuous(breaks=c(0:max(df$time)))
+  #   
+  #   print(plot1 + labs(y="Response", x = "Visit")) + 
+  #     ggtitle(paste0("Individual responses from ",
+  #                    length(unique(df$unit)),
+  #                    " patients, true trt effect ",trt," true interaction ", interaction  ,"
+  # Red lines arithmetic means at each time point in treatment groups.") )
+  #   
+    
+    ####################################################
+    
+    p <- ggplot(data = df , aes(x = time, y = y, group = unit,
+                                         colour = unit)) 
+    
+    p <- p + geom_line() + 
+      stat_smooth(aes(group = 1 )) + 
+      stat_summary(aes(group = 1),
+                   geom = "point", fun = mean, shape = 17, size = 3, col='red') +
+      stat_summary(aes(group = 1),
+                   geom = "line", fun = mean, col='red',lwd=1) +
+      
+      scale_x_continuous(breaks = c(unique(df$time)),
+                         labels = 
+                           c(unique(df$time))) +
+      xlab("Visit") + 
+      ylab("Response") +
+      
+      facet_grid(. ~ treat) +
+      
+      
+      
+      theme(panel.background=element_blank(),
+            # axis.text.y=element_blank(),
+            # axis.ticks.y=element_blank(),
+            # https://stackoverflow.com/questions/46482846/ggplot2-x-axis-extreme-right-tick-label-clipped-after-insetting-legend
+            # stop axis being clipped
+            plot.title=element_text(), plot.margin = unit(c(5.5,12,5.5,5.5), "pt"),
+            legend.text=element_text(size=12),
+            legend.title=element_text(size=14),
+            legend.position="none",
+            axis.text.x  = element_text(size=10),
+            axis.text.y  = element_text(size=10),
+            axis.line.x = element_line(color="black"),
+            axis.line.y = element_line(color="black"),
+            plot.caption=element_text(hjust = 0, size = 7))
+    
+    p  
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    })
+  
   
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # end of boxplots of data at which trt effect starts after baseline allowing highlighting of selected patients
