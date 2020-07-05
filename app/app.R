@@ -253,9 +253,11 @@ ui <- fluidPage(theme = shinytheme("journal"), #https://www.rdocumentation.org/p
                               #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                               tabPanel("B4. Diagnostics",
                                        h4("Figure 7. xxxxxxxxxxxxxxx"),
-                                       # div(plotOutput("res.diag", width=fig.width, height=fig.height)),       
+                                        div(plotOutput("res.diag", width=fig.width, height=fig.height)),       
                                        p(strong("xxxxxxxxxxxxxxx
                                               ")),
+                                       div(plotOutput("res.diag2", width=fig.width, height=fig.height)), 
+                                       div(plotOutput("res.diag3", width=fig.width, height=fig.height)), 
                               ),
                               
                               #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -650,7 +652,7 @@ server <- shinyServer(function(input, output   ) {
     
     names(x) <- namez
     
-    return(list( fit.lmer= summary(fit) , fit.res=fit.res , x=x))
+    return(list( fit.lmer= summary(fit) , fit=fit, fit.res=fit.res , x=x))
     
   })   
   
@@ -683,17 +685,149 @@ server <- shinyServer(function(input, output   ) {
   })  
   
   
+  ###diagnostics
+  
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # Diagnostics using data at which trt effect starts after baseline
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  
+  output$res.diag  <- renderPlot({
+    
+    fit <- fit.reg()$fit
+    
+    df <- make.data()$df
+    
+ 
+    d2 <- df
+    
+    d2$resid <- r <- resid(fit)
+    
+    d2$fitted <- fitted(fit)
+    
+    yl <- ylab('Residuals')
+    
+    xl <- xlab("time")
+    
+    p1 <- ggplot(d2 , aes(x=fitted , y=resid)) + geom_point (   colour="#69b3a2") + yl
+    
+    p3 <- ggplot(d2 , aes(x=time , y=resid )) +  geom_point ( colour="#69b3a2") + yl  + xl +
+      stat_summary(fun.data ="mean_sdl", geom='smooth')
+    
+    p4 <- ggplot(d2 , aes(sample=resid )) + stat_qq(colour="#69b3a2") +
+      geom_abline(intercept=mean(r), slope=sd(r)  ,  colour="black") +
+      xlab('Residuals')   +
+      ggtitle( " ")
+
+    library(gridExtra)
+    library(grid)
+    df <- data.frame(Residuals = r)
+    p5 <- ggplot(df, aes(x = Residuals)) +
+      geom_histogram(aes(y =..density..),
+                     #breaks = seq(-50, 50, by = 2),
+                     colour = "black",
+                     fill = "#69b3a2") +
+      stat_function(fun = dnorm, args = list(mean = 0, sd = sigma(fit)  ))
+    
+    grid.arrange(p1,  p3, p4,p5, ncol=2,
+                 
+                 top = textGrob(paste0(input$Plot, " LMM model fit diagnostics"),gp=gpar(fontsize=20,font=3)))
+  
+    
+  })
   
   
   
   
+  ## more diagnostics
+  
+  output$res.diag2  <- renderPlot({
+    
+    fit <- fit.reg()$fit
+    
+    df <- make.data()$df
+    
+    
+    d2 <- df
+    
+    d2$resid <- r <- resid(fit)
+    
+    d2$fitted <- fitted(fit)
+    
+    require(lattice)
+    q1 <- function(x) { 
+      qqmath(ranef(fit, condVar = TRUE), strip = FALSE)$mid
+    }
+    
+    q2  <- function(x) { 
+       qqmath(ranef(fit, condVar = TRUE), strip = FALSE)$top
+    }
+    
+      
+    #https://stackoverflow.com/questions/13847936/plot-random-effects-from-lmer-lme4-package-using-qqmath-or-dotplot-how-to-mak
+    
+    
+    n1 <-  length(ranef(fit3)$low[,1])
+    
+    q3 <- function(x) {  
+    qqnorm(ranef(fit3)$low[,1] ,  main=paste0(n1, " patient random intercepts"))
+    p4 <- qqline(ranef(fit3)$low[,1], col = "red")
+    }
+    
+    n2 <-  length(ranef(fit3)$low[,2])
+    q4 <- function(x) {  
+      qqnorm(ranef(fit3)$low[,2] ,  main=paste0(n2, " patient random slopes"))
+      p4 <- qqline(ranef(fit3)$low[,2], col = "red")
+    }
+    
+    n3 <-  length(ranef(fit3)$mid[,1])
+    q3a <- function(x) {  
+      qqnorm(ranef(fit3)$mid[,1],  main=paste0(n3, " mid group random effects"))
+      p4 <- qqline(ranef(fit3)$mid[,1], col = "red")
+    }
+    
+    n4 <-  length(ranef(fit3)$top[,1])
+    q4a <- function(x) {  
+      qqnorm(ranef(fit3)$top[,1] ,  main=paste0(n4, " top group random effects"))
+      p4 <- qqline(ranef(fit3)$top[,1], col = "red")
+    }
+    
+    
+     
+    par(mfrow=c(2,2))
+       q3();q4(); q3a();q4a()
+     par(mfrow=c(1,1))
+     
+  })
   
   
+
   
-  
-  
-  
-  
+  output$res.diag3  <- renderPlot({
+    
+    fit <- fit.reg()$fit
+    
+    df <- make.data()$df
+
+    d2 <- df
+    
+    d2$resid <- r <- resid(fit)
+    
+    d2$fitted <- fitted(fit)
+    
+    require(lattice)
+    q1 <- function(x) { 
+      qqmath(ranef(fit, condVar = TRUE), strip = FALSE)$mid
+    }
+    
+    q2  <- function(x) { 
+      qqmath(ranef(fit, condVar = TRUE), strip = FALSE)$top
+    }
+    
+    pl = list(q1(), q2()   )
+    do.call(grid.arrange, c(pl, nrow=1))
+    do.call(grid.arrange, c(lapply(pl, update), list(nrow=2)))
+    
+  })
   
   
   
