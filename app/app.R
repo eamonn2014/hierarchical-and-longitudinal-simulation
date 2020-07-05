@@ -605,6 +605,13 @@ server <- shinyServer(function(input, output   ) {
     (fit <- lmer( y ~ time* trt  + (1|top) + (1|mid) + (as.numeric(time)|low), data=df))
     
     
+    # df$predicted <- predict (fit, newdata=df, allow.new.levels=T)
+    df$s <- simulate(fit, seed=1,  re.form=NULL,newdata=df ,
+                     allow.new.levels=F)$sim_1
+    
+    
+    
+    
     ddz <<- datadist(df)  # need the double in this environ <<
     options(datadist='ddz')
     (fit.res <-  
@@ -652,7 +659,7 @@ server <- shinyServer(function(input, output   ) {
     
     names(x) <- namez
     
-    return(list( fit.lmer= summary(fit) , fit=fit, fit.res=fit.res , x=x))
+    return(list( fit.lmer= summary(fit) , fit=fit, fit.res=fit.res , x=x, df=df))
     
   })   
   
@@ -742,7 +749,7 @@ server <- shinyServer(function(input, output   ) {
   
   output$res.diag2  <- renderPlot({
     
-    fit <- fit.reg()$fit
+   fit3 <- fit <- fit.reg()$fit
     
     df <- make.data()$df
     
@@ -1181,15 +1188,24 @@ server <- shinyServer(function(input, output   ) {
     # interaction<-    sample$interaction
     # trt   <-         sample$trt
     
-    df        <- make.data()$df
+    #df        <- make.data()$df
+    df        <- fit.reg()$df
     
-     df$y      <- df$yb
-     df$y <- predict (fit) #, newdata=df, allow.new.levels=T)
+    
+  #  df$time <- factor(df$time)
+    
+     df$y      <- df$s
+     
+     
+     #df$y <- predict (fit) #, newdata=df, allow.new.levels=T)
      
       
-     df$y <- simulate(fit, seed=1,  re.form=NA,
-                              allow.new.levels=F)$sim_1
+     # df$y <- simulate(fit, seed=1,  re.form=NULL,
+     #                          allow.new.levels=F)$sim_1
      
+    # df$predicted <- predict (fit, newdata=df, allow.new.levels=T)
+     # df$y <- simulate(fit, seed=1,  re.form=NULL,newdata=df ,
+     #                          allow.new.levels=F)$sim_1
      
      
      
@@ -1208,9 +1224,9 @@ server <- shinyServer(function(input, output   ) {
       stat_summary(aes(group = 1),
                    geom = "line", fun = mean, col='red',lwd=1) +
       
-      scale_x_continuous(breaks = c(unique(df$time)),
-                         labels = 
-                           c(unique(df$time))) +
+    #  scale_x_continuous(breaks = c(unique(df$time)),
+                   #      labels = 
+                       #   c(unique(df$time))) +
       xlab("Visit") + 
       ylab("Response") +
       
