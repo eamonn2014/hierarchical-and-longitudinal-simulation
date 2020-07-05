@@ -1186,6 +1186,13 @@ server <- shinyServer(function(input, output   ) {
      df$y      <- df$yb
      df$y <- predict (fit) #, newdata=df, allow.new.levels=T)
      
+      
+     df$y <- simulate(fit, seed=1,  re.form=NA,
+                              allow.new.levels=F)$sim_1
+     
+     
+     
+     
     df$unit   <- df$low
     df$treat  <- factor(df$trt)
 
