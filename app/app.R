@@ -87,84 +87,47 @@ ui <- fluidPage(theme = shinytheme("journal"), #https://www.rdocumentation.org/p
                                   #           "1,2,3,4"),
                                   # 
                                   
-                                  selectInput("Plot1",
-                                              div(h5(tags$span(style="color:blue", "Select plot"))),
-                                              choices=c("Overall","Individual" )),
-                                  
-                                  textInput('vec1', 
-                                            div(h5(tags$span(style="color:blue", "Select patient(s) to view. If 'Select plot' 'Individual' is chosen, enter sample ID(s) (comma delimited); 
-                                      enter 999 to show all profiles"))),
-                                            "1,2,3,4"),
+                                  # selectInput("Plot1",
+                                  #             div(h5(tags$span(style="color:blue", "Select plot"))),
+                                  #             choices=c("Overall","Individual" )),
+                                  # 
+                                  # textInput('vec1', 
+                                  #           div(h5(tags$span(style="color:blue", "Select patient(s) to view. If 'Select plot' 'Individual' is chosen, enter sample ID(s) (comma delimited); 
+                                  #     enter 999 to show all profiles"))),
+                                  #           "1,2,3,4"),
                                   
                                   
                                   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                                  
-                                  # intercept =40 
-                                  # top      = 15         ##number of groups at top of hierarchy
-                                  # range1     = 10        ##app samples betwen these, levels e
-                                  # range2     = 10        ##app sample these
-                                  # replicates = c(3, 10) ##app sample these
-                                  # 
-                                  # x1 <- x2 <- range1 
-                                  # x4 <- x3 <- range2
-                                  # x5 <- replicates[1]
-                                  # x6 <- replicates[2]
-                                  # 
-                                  # # random effect SDs
-                                  # a     =1        # top 
-                                  # b     =9        # middle
-                                  # sigma =50       # residual
-                                  # trtB =  8       # trt effect
-                                  # interB= 2       # time x trt interaction
-                                  # beta1  <- -1    # slope
-                                  # tau0   <-  18   # person intercept SD
-                                  # tau1   <-  1    # person slope  SD
-                                  # tau01  <- -0.62 # slope intercept corr 
-                                  # 
-                                  
-                                  
-                                  
-                                  # user input setup
-                                  # sliderInput("N",
-                                  #             div(h5(tags$span(style="color:blue", "total number of subjects"))),
-                                  #             min=2, max=500, step=1, value=200, ticks=FALSE),
-                                  
+           
                                   
                                   ################
                                   sliderInput("intercept",
-                                              "True intercept",
-                                              min=0, max=1000, step=.5, value=100, ticks=FALSE),
+                                              div(h5(tags$span(style="color:blue",  "True intercept"))),
+                                               min=0, max=1000, step=.5, value=100, ticks=FALSE),
                                   
                                   sliderInput("top",
-                                              "Number of levels of top component",
+                                               div(h5(tags$span(style="color:blue",  "Number of levels of top component"))),
                                               min=2, max=100, step=1, value=4, ticks=FALSE),
                                   
-                                  sliderInput("range1", "Middle level: Randomly select using range or precisely select no of 'mid' groups within each top level group:", 
-                                              min = 2, max = 10, value = c(2, 10), ticks=FALSE) ,
+                                  sliderInput("range1", 
+                                              div(h5(tags$span(style="color:blue", "Middle level: Randomly select using range or precisely select no of 'mid' groups within each top level group:"))),
+                                               min = 2, max = 10, value = c(2, 10), ticks=FALSE) ,
                                   
-                                  sliderInput("range2", "Lower level: Randomly select using range or precisely select no of 'low' groups within each mid level group:",
-                                              min = 2, max = 10, value = c(5, 10),ticks=FALSE),
+                                  sliderInput("range2",
+                                              div(h5(tags$span(style="color:blue", "Lower level: Randomly select using range or precisely select no of 'low' groups within each mid level group:"))),
+                                                                                            min = 2, max = 10, value = c(5, 10),ticks=FALSE),
                                   
-                                  sliderInput("replicates", "Visits",
-                                              min = 2, max = 50, value = c(3, 10), ticks=FALSE),
+                                  sliderInput("replicates",
+                                              div(h5(tags$span(style="color:blue", "Visits"))),
+                                               min = 2, max = 50, value = c(3, 10), ticks=FALSE),
+                                  
                                   sliderInput("a",
-                                              "True top level SD",
+                                               div(h5(tags$span(style="color:blue",  "True top level SD"))),
                                               min=1, max=100, step=.5, value=20, ticks=FALSE),
+                                  
                                   sliderInput("b",
-                                              "True middle level SD",
+                                              div(h5(tags$span(style="color:blue",  "True middle level SD"))),
                                               min=1, max=100, step=.5, value=2, ticks=FALSE),
-                                  # sliderInput("c",
-                                  #             "True lower level SD",
-                                  #             min=1, max=100, step=.5, value=2, ticks=FALSE),
-                                  # sliderInput("d",
-                                  #             "True error",
-                                  #             min=1, max=100, step=.5, value=2, ticks=FALSE),
-                                  ###################
-                                  
-                                  
-                                  # sliderInput("J",
-                                  #             div(h5(tags$span(style="color:blue", "Maximum visit in data simulation including baseline"))),
-                                  #             min=3, max=10, step=1, value=9, ticks=FALSE),
                                   
                                   sliderInput("trt.effect",
                                               div(h5(tags$span(style="color:blue", "Treatment effect"))),
@@ -174,10 +137,7 @@ ui <- fluidPage(theme = shinytheme("journal"), #https://www.rdocumentation.org/p
                                               div(h5(tags$span(style="color:blue", "Treatment time interaction"))),
                                               min = -10, max = 10, value = c(-.2), step=.1, ticks=FALSE),
                                   
-                                  # sliderInput("beta0", 
-                                  #             div(h5(tags$span(style="color:blue", "Average intercept"))),
-                                  #             min = -100, max = 500, step=1, value = c(150), ticks=FALSE) ,
-                                  # 
+                                  
                                   sliderInput("beta1", 
                                               div(h5(tags$span(style="color:blue", "Average slope"))),
                                               min = -5, max =5, step=.5, value = c(0),ticks=FALSE),
@@ -261,17 +221,16 @@ ui <- fluidPage(theme = shinytheme("journal"), #https://www.rdocumentation.org/p
                                        #div(class="span7", verbatimTextOutput("reg.summary2c")),
                                        #  h4(paste("Table 3. xxxxxxxxxxxxxxx")), 
                                        
-                                       splitLayout(
-                                         
-                                         
-                                         selectInput("group",
-                                                     div(h5(tags$span(style="color:blue", "Select group"))),
-                                                     choices=c("top","mid", "ID" )),
-                                         
-                                         textInput("level", div(h5(tags$span(style="color:blue", "what group level to display?"))), value= "1")
-                                         
-                                         
-                                       ),
+                                       
+                                       selectInput("Plot1",
+                                                   div(h5(tags$span(style="color:blue", "Select plot"))),
+                                                   choices=c("Overall","Individual" )),
+                                       
+                                       textInput('vec1', 
+                                                 div(h5(tags$span(style="color:blue", "Select patient(s) to view. If 'Select plot' 'Individual' is chosen, enter sample ID(s) (comma delimited); 
+                                      enter 999 to show all profiles"))),
+                                                 "1,2,3,4"),
+                                       
                                        
                                        div(plotOutput("reg.plot2", width=fig.width, height=fig.height)),
                                        
@@ -376,11 +335,7 @@ server <- shinyServer(function(input, output   ) {
     
     # Dummy line to trigger off button-press
     foo <-      input$resample
-    
-    
-    
-    
-    # N <-      input$N
+ 
     beta0 <-  input$intercept  
     beta1 <-  input$beta1
     sigma <-  input$sigma
@@ -391,17 +346,14 @@ server <- shinyServer(function(input, output   ) {
     trt <-    input$trt.effect 
     interaction = input$interaction
     time.ref <-   input$time.ref
-    
-    
+     
     top <-         input$top
     range1 <-      input$range1
     range2  <-     input$range2
     replicates  <- input$replicates
     a <-           input$a  # random effect sds
     b <-           input$b
-    #  c <-           input$c
-    # d  <-          input$d
-    
+      
     x1 <- range1[1]
     x2 <- range1[2]
     x3 <- range2[1]
@@ -443,10 +395,7 @@ server <- shinyServer(function(input, output   ) {
       
     }
     
-    
-    #residual <- d
-    #d <- intercept
-    
+ 
     n <- sum(replicates)
     
     
@@ -481,7 +430,7 @@ server <- shinyServer(function(input, output   ) {
     
     sample <- random.sample()
     
-    # n <-N        <-      sample$N 
+   
     intercept <-     sample$beta0 
     beta1    <-      sample$beta1
     sigma    <-      sample$sigma
@@ -494,14 +443,8 @@ server <- shinyServer(function(input, output   ) {
     trt   <-         sample$trt
     
     
-    top=          sample$top
-    # range1=       sample$range1
-    # range2=       sample$range2
-    replicates=   sample$replicates
-    # a=sample$a
-    #    b=sample$b
-    c=sample$c
-    #    d=sample$d
+    top<-          sample$top
+    replicates <-   sample$replicates
     middle=  sample$middle
     lower=   sample$lower
     
@@ -511,7 +454,7 @@ server <- shinyServer(function(input, output   ) {
     middle.id= sample$middle.id
     top.id=   sample$top.id
     
-    ar.val=.66
+    ar.val=.66  # come back to this
     #######################################################################
     # HARD CODE FOR TESTING
     #######################################################################
