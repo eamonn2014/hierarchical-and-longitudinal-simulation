@@ -226,7 +226,7 @@ ui <- fluidPage(theme = shinytheme("journal"), #https://www.rdocumentation.org/p
                                        #     div(plotOutput("reg.plot33", width=fig.width, height=fig.height)),  
                                        # h4(paste("Figure 5. xxxxxxxxxxxxxxx")), 
                                        div(plotOutput("reg.plot3", width=fig.width, height=fig.height)),
-                                       
+                                       div(plotOutput("reg.pred", width=fig.width, height=fig.height)),
                                        
                                        
                               ) ,
@@ -1164,24 +1164,7 @@ server <- shinyServer(function(input, output   ) {
     
     p  
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+  
     })
   
   
@@ -1189,6 +1172,64 @@ server <- shinyServer(function(input, output   ) {
   # end of boxplots of data at which trt effect starts after baseline allowing highlighting of selected patients
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   
+  output$reg.pred <- renderPlot({ 
+    
+    sample <- random.sample()
+    
+    fit <- fit.reg()$fit
+    
+    # interaction<-    sample$interaction
+    # trt   <-         sample$trt
+    
+    df        <- make.data()$df
+    
+     df$y      <- df$yb
+     df$y <- predict (fit) #, newdata=df, allow.new.levels=T)
+     
+    df$unit   <- df$low
+    df$treat  <- factor(df$trt)
+
+
+    
+    p <- ggplot(data = df , aes(x = time, y = y, group = unit,
+                                colour = unit)) 
+    
+    p <- p + geom_line() + 
+      stat_smooth(aes(group = 1 )) + 
+      stat_summary(aes(group = 1),
+                   geom = "point", fun = mean, shape = 17, size = 3, col='red') +
+      stat_summary(aes(group = 1),
+                   geom = "line", fun = mean, col='red',lwd=1) +
+      
+      scale_x_continuous(breaks = c(unique(df$time)),
+                         labels = 
+                           c(unique(df$time))) +
+      xlab("Visit") + 
+      ylab("Response") +
+      
+      facet_grid(. ~ treat) +
+      
+      
+      
+      theme(panel.background=element_blank(),
+            # axis.text.y=element_blank(),
+            # axis.ticks.y=element_blank(),
+            # https://stackoverflow.com/questions/46482846/ggplot2-x-axis-extreme-right-tick-label-clipped-after-insetting-legend
+            # stop axis being clipped
+            plot.title=element_text(), plot.margin = unit(c(5.5,12,5.5,5.5), "pt"),
+            legend.text=element_text(size=12),
+            legend.title=element_text(size=14),
+            legend.position="none",
+            axis.text.x  = element_text(size=10),
+            axis.text.y  = element_text(size=10),
+            axis.line.x = element_line(color="black"),
+            axis.line.y = element_line(color="black"),
+            plot.caption=element_text(hjust = 0, size = 7))
+    
+    p  
+    
+    
+  })
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # start of spaghetti plots of data at which trt effect starts after baseline allowing highlighting of selected patients
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
