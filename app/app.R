@@ -593,9 +593,9 @@ server <- shinyServer(function(input, output   ) {
   fit.reg <- reactive({
     
     sample <- random.sample()
-    
+ 
     df<- make.data()$df
-    
+     
     df$time <- factor(df$time)
     
    # d$treat <- relevel(d$treat, ref= "Placebo")  # NEW
