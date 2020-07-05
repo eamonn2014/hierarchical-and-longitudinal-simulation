@@ -445,7 +445,9 @@ server <- shinyServer(function(input, output   ) {
     
     
     #residual <- d
-    d <- intercept
+    #d <- intercept
+    
+    n <- sum(replicates)
     
     
     # random effects
@@ -510,46 +512,75 @@ server <- shinyServer(function(input, output   ) {
     top.id=   sample$top.id
     
     ar.val=.66
-    
     #######################################################################
-    # n <-N        <-     100
-    #  intercept <-     100
-    #  beta1    <-      1
-    #   sigma    <-      1
-    #    tau0        <-   1 # standard deviations for the intercept
-    #  tau1        <-   1 # standard deviations for slope
-    #    tau01        <-  .5 # random effects correlation of slope internet
-    #    J        <-      10
-    #   time.ref <-      4
-    #   interaction<-    1
-    #   trt   <-         1
-    
-    
-    #   top=          4
-    #   range1=      4
-    #   range2=       8
-    #   replicates=   10
-    #
-    #  c=3
-    #    d=sample$d
-    #    middle=  10
-    #   lower=   10
-    
-    # top.r=     sample$top.r
-    # middle.r=  sample$middle.r
-    # lower.id=  sample$lower.id
-    # middle.id= sample$middle.id
-    #top.id=   sample$top.id
-    
-    #    ar.val=.66
-    
-    # random effects
-    #    top.r <-    rnorm(top,          d,                lower)
-    #    middle.r <- rnorm(sum(middle),  0,                middle)
+    # HARD CODE FOR TESTING
     #######################################################################
-    
-    
-    
+     # n <-N    <-     100
+     # intercept <-     100
+     # beta1    <-      1
+     # sigma    <-      1
+     # tau0        <-   1 # standard deviations for the intercept
+     # tau1        <-   1 # standard deviations for slope
+     # tau01        <-  .5 # random effects correlation of slope internet
+     # J        <-      10
+     # time.ref <-      4
+     # interaction<-    1
+     # trt   <-         1
+     # top=             4
+     # c <-  3
+     # x1 <- 10
+     # x2 <- 10
+     # x3 <- 10
+     # x4 <- 10
+     # x5 <- 5
+     # x6 <- 5
+     # 
+     # if (x1==x2) {
+     #   
+     #   middle <-  sample(c(x1,x2),   top, replace=TRUE)    # ditto groups in each top level 6
+     #   
+     # } else {
+     #   
+     #   middle <-  sample(c(x1:x2),   top, replace=TRUE)    # ditto groups in each top level 6
+     # }
+     # 
+     # 
+     # if (x3==x4) {
+     #   
+     #   lower <-   sample(c(x3,x4),   sum(middle), replace=TRUE )
+     #   
+     # } else {
+     #   
+     #   lower <-   sample(c(x3:x4),   sum(middle), replace=TRUE )
+     #   
+     # }
+     # 
+     # if (x5==x6) {
+     #   
+     #   replicates <-  sample(c(x5,x6),   sum(lower), replace=TRUE )
+     #   
+     # } else {
+     #   
+     #   replicates <-  sample(c(x5:x6),   sum(lower), replace=TRUE ) 
+     #   
+     # }
+     # 
+     # n <- sum(replicates)
+     # top.r <-    rnorm(top,          intercept,                5)    
+     # middle.r <- rnorm(sum(middle),  0,                5)     
+     # 
+     # lower.id <- rep(seq_len(sum(lower)), replicates )        
+     # middle.id <- cut(lower.id, c(0,cumsum(lower)),  labels=FALSE)
+     # top.id   <- cut(middle.id, c(0,cumsum(middle)), labels=FALSE)
+     # ar.val=.66
+     # 
+     # top.r <-    rnorm(top,          intercept,                lower)
+     # middle.r <- rnorm(sum(middle),  0,                middle)
+    #######################################################################
+    # END HARD CODE FOR TESTING
+    #######################################################################
+
+    n <- sum(replicates)
     ### simulate (correlated) random effects for intercepts and slopes
     mu  <- c(0,0)
     S   <- matrix(c(1, tau01, tau01, 1), nrow=2)
@@ -596,16 +627,16 @@ server <- shinyServer(function(input, output   ) {
     trtB =  trt
     interB= interaction
     ### so we can expect 5+(2.5)*(1:9),, trt effect over time  7.5 10.0 12.5 15.0 17.5 20.0 22.5 25.0 27.5
-    
+
     trt <- sample( c(1,0),  length(unique(lower.id)), replace=TRUE)  # trt indicator
     df$trt <- rep(trt, times=p)
     df$interaction <- ifelse(df$trt==1,1,0)
-    
+
     # trt effect only 1 group.
     # interaction only in treated
     df$y2b = with(df, y2+ (trt*trtB)+  ((time)*interaction*interB))
     df$y2b = with(df,ifelse((trt %in% 1 & time %in% 0), y2, y2b  ))
-    
+
     df$yb = with(df, y+ (trt*trtB)+  ((time)*interaction*interB))
     df$yb = with(df,ifelse((trt %in% 1 & time %in% 0), y, yb  ))
     
