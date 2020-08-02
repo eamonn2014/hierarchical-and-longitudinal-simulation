@@ -79,33 +79,33 @@ ui <- fluidPage(theme = shinytheme("journal"), #https://www.rdocumentation.org/p
                                     tags$style(HTML('#resample{background-color:orange}'))
                                   ),
                                   
-                                     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-           
+                                  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                  
                                   
                                   ################
                                   sliderInput("intercept",
                                               div(h5(tags$span(style="color:blue",  "True intercept"))),
-                                               min=0, max=1000, step=.5, value=100, ticks=FALSE),
+                                              min=0, max=1000, step=.5, value=100, ticks=FALSE),
                                   
                                   sliderInput("top",
-                                               div(h5(tags$span(style="color:blue",  "Number of levels of top component"))),
+                                              div(h5(tags$span(style="color:blue",  "Number of levels of top component"))),
                                               min=2, max=100, step=1, value=4, ticks=FALSE),
                                   
                                   sliderInput("range1", 
                                               div(h5(tags$span(style="color:blue", "Middle level: Randomly select using range or precisely select no of 'mid' groups within each top level group:"))),
-                                               min = 2, max = 10, value = c(2, 10), ticks=FALSE) ,
+                                              min = 2, max = 10, value = c(2, 10), ticks=FALSE) ,
                                   
                                   sliderInput("range2",
                                               div(h5(tags$span(style="color:blue", "Lower level: Randomly select using range or precisely select no of 'low' groups within each mid level group:"))),
-                                                                                            min = 2, max = 10, value = c(5, 10),ticks=FALSE),
+                                              min = 2, max = 10, value = c(5, 10),ticks=FALSE),
                                   
                                   sliderInput("replicates",
                                               div(h5(tags$span(style="color:blue", "Visits (after first selection data mav be missing at random. 
                                                                Second selection is maximum visit."))),
-                                               min = 2, max = 50, value = c(3, 10), ticks=FALSE),
+                                              min = 2, max = 50, value = c(3, 10), ticks=FALSE),
                                   
                                   sliderInput("a",
-                                               div(h5(tags$span(style="color:blue",  "True top level SD"))),
+                                              div(h5(tags$span(style="color:blue",  "True top level SD"))),
                                               min=1, max=100, step=.5, value=20, ticks=FALSE),
                                   
                                   sliderInput("b",
@@ -141,7 +141,7 @@ ui <- fluidPage(theme = shinytheme("journal"), #https://www.rdocumentation.org/p
                                               div(h5(tags$span(style="color:blue",  "True error SD"  ))),
                                               min =.01, max = 30, value = c(26), step=.1, ticks=FALSE),
                                   
-                        
+                                  
                                   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                                   
                                   div(p( strong("References:"))),  
@@ -236,10 +236,10 @@ ui <- fluidPage(theme = shinytheme("journal"), #https://www.rdocumentation.org/p
                               #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                               tabPanel("B2. GLS & LMM", 
                                        
-                                         div(class="span7", verbatimTextOutput("reg.summaryb1")),
-                                           h4(paste("Table 4. xxxxxxxxxxxxxxx")), 
-                                        div(class="span7", verbatimTextOutput("reg.summaryb2")),
-                                            h4(paste("Table 5. xxxxxxxxxxxxxxx")), 
+                                       div(class="span7", verbatimTextOutput("reg.summaryb1")),
+                                       h4(paste("Table 4. xxxxxxxxxxxxxxx")), 
+                                       div(class="span7", verbatimTextOutput("reg.summaryb2")),
+                                       h4(paste("Table 5. xxxxxxxxxxxxxxx")), 
                                        
                               ) ,
                               #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -248,14 +248,14 @@ ui <- fluidPage(theme = shinytheme("journal"), #https://www.rdocumentation.org/p
                                        #   div(plotOutput("reg.plot2b", width=fig.width, height=fig.height)),  
                                        #  h4(paste("Figure 6.  xxxxxxxxxxxxxxx")), 
                                        
-                                        div(class="span7", verbatimTextOutput("reg.summaryb3")),
-                                           h4(paste("Table 6. xxxxxxxxxxxxxxx.")), 
+                                       div(class="span7", verbatimTextOutput("reg.summaryb3")),
+                                       h4(paste("Table 6. xxxxxxxxxxxxxxx.")), 
                                        
                               ) ,
                               #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                               tabPanel("B4. Diagnostics",
                                        h4("Figure 7. xxxxxxxxxxxxxxx"),
-                                        div(plotOutput("res.diag", width=fig.width, height=fig.height)),       
+                                       div(plotOutput("res.diag", width=fig.width, height=fig.height)),       
                                        p(strong("xxxxxxxxxxxxxxx
                                               ")),
                                        div(plotOutput("res.diag2", width=fig.width, height=fig.height)), 
@@ -263,10 +263,13 @@ ui <- fluidPage(theme = shinytheme("journal"), #https://www.rdocumentation.org/p
                               ),
                               
                               #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                              tabPanel("C1. Data listing", value=3, 
+                              tabPanel("C1. GLS & LMM including baseline", value=3, 
                                        
-                                       h6("xxxxxxxxxxxxxxx"),
-                                       #    DT::dataTableOutput("table1"),
+                                       div(class="span7", verbatimTextOutput("reg.summaryb1b")),
+                                       h4(paste("Table 4. xxxxxxxxxxxxxxx")), 
+                                       div(class="span7", verbatimTextOutput("reg.summaryb2b")),
+                                       h4(paste("Table 5. xxxxxxxxxxxxxxx")), 
+                                       
                               ),
                               #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                               tabPanel("D. Notes", value=3, 
@@ -324,7 +327,7 @@ server <- shinyServer(function(input, output   ) {
     
     # Dummy line to trigger off button-press
     foo <-      input$resample
- 
+    
     beta0 <-  input$intercept  
     beta1 <-  input$beta1
     sigma <-  input$sigma
@@ -335,14 +338,14 @@ server <- shinyServer(function(input, output   ) {
     trt <-    input$trt.effect 
     interaction = input$interaction
     time.ref <-   input$time.ref
-     
+    
     top <-         input$top
     range1 <-      input$range1
     range2  <-     input$range2
     replicates  <- input$replicates
     a <-           input$a  # random effect sds
     b <-           input$b
-      
+    
     x1 <- range1[1]
     x2 <- range1[2]
     x3 <- range2[1]
@@ -384,7 +387,7 @@ server <- shinyServer(function(input, output   ) {
       
     }
     
- 
+    
     n <- sum(replicates)
     
     
@@ -422,7 +425,7 @@ server <- shinyServer(function(input, output   ) {
     
     sample <- random.sample()
     
-   
+    
     intercept <-     sample$beta0 
     beta1    <-      sample$beta1
     sigma    <-      sample$sigma
@@ -450,71 +453,71 @@ server <- shinyServer(function(input, output   ) {
     #######################################################################
     # HARD CODE FOR TESTING
     #######################################################################
-     # n <-N    <-     100
-     # intercept <-     100
-     # beta1    <-      1
-     # sigma    <-      1
-     # tau0        <-   1 # standard deviations for the intercept
-     # tau1        <-   1 # standard deviations for slope
-     # tau01        <-  .5 # random effects correlation of slope internet
-     # J        <-      10
-     # time.ref <-      4
-     # interaction<-    1
-     # trt   <-         1
-     # top=             4
-     # c <-  3
-     # x1 <- 10
-     # x2 <- 10
-     # x3 <- 10
-     # x4 <- 10
-     # x5 <- 5
-     # x6 <- 5
-     # 
-     # if (x1==x2) {
-     # 
-     #   middle <-  sample(c(x1,x2),   top, replace=TRUE)    # ditto groups in each top level 6
-     # 
-     # } else {
-     # 
-     #   middle <-  sample(c(x1:x2),   top, replace=TRUE)    # ditto groups in each top level 6
-     # }
-     # 
-     # 
-     # if (x3==x4) {
-     # 
-     #   lower <-   sample(c(x3,x4),   sum(middle), replace=TRUE )
-     # 
-     # } else {
-     # 
-     #   lower <-   sample(c(x3:x4),   sum(middle), replace=TRUE )
-     # 
-     # }
-     # 
-     # if (x5==x6) {
-     # 
-     #   replicates <-  sample(c(x5,x6),   sum(lower), replace=TRUE )
-     # 
-     # } else {
-     # 
-     #   replicates <-  sample(c(x5:x6),   sum(lower), replace=TRUE )
-     # 
-     # }
-     # 
-     # n <- sum(replicates)
-     # top.r <-    rnorm(top,          intercept,                5)
-     # middle.r <- rnorm(sum(middle),  0,                5)
-     # 
-     # lower.id <- rep(seq_len(sum(lower)), replicates )
-     # middle.id <- cut(lower.id, c(0,cumsum(lower)),  labels=FALSE)
-     # top.id   <- cut(middle.id, c(0,cumsum(middle)), labels=FALSE)
-     # ar.val=.66
-     # 
-     # top.r <-    rnorm(top,          intercept,                lower)
-     # middle.r <- rnorm(sum(middle),  0,                middle)
+    # n <-N    <-     100
+    # intercept <-     100
+    # beta1    <-      1
+    # sigma    <-      1
+    # tau0        <-   1 # standard deviations for the intercept
+    # tau1        <-   1 # standard deviations for slope
+    # tau01        <-  .5 # random effects correlation of slope internet
+    # J        <-      10
+    # time.ref <-      4
+    # interaction<-    1
+    # trt   <-         1
+    # top=             4
+    # c <-  3
+    # x1 <- 10
+    # x2 <- 10
+    # x3 <- 10
+    # x4 <- 10
+    # x5 <- 5
+    # x6 <- 5
+    # 
+    # if (x1==x2) {
+    # 
+    #   middle <-  sample(c(x1,x2),   top, replace=TRUE)    # ditto groups in each top level 6
+    # 
+    # } else {
+    # 
+    #   middle <-  sample(c(x1:x2),   top, replace=TRUE)    # ditto groups in each top level 6
+    # }
+    # 
+    # 
+    # if (x3==x4) {
+    # 
+    #   lower <-   sample(c(x3,x4),   sum(middle), replace=TRUE )
+    # 
+    # } else {
+    # 
+    #   lower <-   sample(c(x3:x4),   sum(middle), replace=TRUE )
+    # 
+    # }
+    # 
+    # if (x5==x6) {
+    # 
+    #   replicates <-  sample(c(x5,x6),   sum(lower), replace=TRUE )
+    # 
+    # } else {
+    # 
+    #   replicates <-  sample(c(x5:x6),   sum(lower), replace=TRUE )
+    # 
+    # }
+    # 
+    # n <- sum(replicates)
+    # top.r <-    rnorm(top,          intercept,                5)
+    # middle.r <- rnorm(sum(middle),  0,                5)
+    # 
+    # lower.id <- rep(seq_len(sum(lower)), replicates )
+    # middle.id <- cut(lower.id, c(0,cumsum(lower)),  labels=FALSE)
+    # top.id   <- cut(middle.id, c(0,cumsum(middle)), labels=FALSE)
+    # ar.val=.66
+    # 
+    # top.r <-    rnorm(top,          intercept,                lower)
+    # middle.r <- rnorm(sum(middle),  0,                middle)
     #######################################################################
     # END HARD CODE FOR TESTING
     #######################################################################
-
+    
     n <- sum(replicates)
     ### simulate (correlated) random effects for intercepts and slopes
     mu  <- c(0,0)
@@ -562,21 +565,31 @@ server <- shinyServer(function(input, output   ) {
     trtB =  trt
     interB= interaction
     ### so we can expect 5+(2.5)*(1:9),, trt effect over time  7.5 10.0 12.5 15.0 17.5 20.0 22.5 25.0 27.5
-
+    
     trt <- sample( c(1,0),  length(unique(lower.id)), replace=TRUE)  # trt indicator
     df$trt <- rep(trt, times=p)
     df$interaction <- ifelse(df$trt==1,1,0)
-
+    
     # trt effect only 1 group.
     # interaction only in treated
     df$y2b = with(df, y2+ (trt*trtB)+  ((time)*interaction*interB))
     df$y2b = with(df,ifelse((trt %in% 1 & time %in% 0), y2, y2b  ))
-
+    
     df$yb = with(df, y+ (trt*trtB)+  ((time)*interaction*interB))
     df$yb = with(df,ifelse((trt %in% 1 & time %in% 0), y, yb  ))
     
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # baseline of outcome is made a covariate
+    # now we create a data set that we can plot all time points easily
+    # & easy to do an analysis using baseline as covariate
     
+    baseline <- df[df$time %in% 0, c("low","y2b")]
+
+    baseline <- upData(baseline , rename =c(y2b = 'y0' ), print =FALSE)
+
+    df <- merge (baseline , df , by= 'low')
+
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     
     return(list(  df=df) )
     
@@ -602,18 +615,18 @@ server <- shinyServer(function(input, output   ) {
   fit.reg <- reactive({
     
     sample <- random.sample()
- 
+    
     df<- make.data()$df
-     
+    
     df$time <- factor(df$time)
     
-   # d$treat <- relevel(d$treat, ref= "Placebo")  # NEW
+    # d$treat <- relevel(d$treat, ref= "Placebo")  # NEW
     
     ###!!!!!!!!!!!!!!!!!!!!!RESPONSE WAS Y WHICH DOES NOT HAVE TRT EFFECR!!!!!!!!!!!!!!!!!!!
     (fit <- lmer( yb ~ time* trt  + (1|top) + (1|mid) + (as.numeric(time)|low), data=df))
     #(fit1 <- lmer( y ~ time* trt  + (1|top/mid) + (as.numeric(time)|low), data=df)) will match
     (fit2 <- lmer( y ~ time *trt+   (as.numeric(time)|top/mid/low), data=df))   # warning
-   #  (fit3 <- lmer( y ~ time +   (0+as.numeric(time)|top/mid/low), data=df))  # no correlation
+    #  (fit3 <- lmer( y ~ time +   (0+as.numeric(time)|top/mid/low), data=df))  # no correlation
     
     #anova(fit, fit2, fit3)
     
@@ -718,7 +731,7 @@ server <- shinyServer(function(input, output   ) {
     
     df <- make.data()$df
     
- 
+    
     d2 <- df
     
     d2$resid <- r <- resid(fit)
@@ -738,7 +751,7 @@ server <- shinyServer(function(input, output   ) {
       geom_abline(intercept=mean(r), slope=sd(r)  ,  colour="black") +
       xlab('Residuals')   +
       ggtitle( " ")
-
+    
     library(gridExtra)
     library(grid)
     df <- data.frame(Residuals = r)
@@ -752,7 +765,7 @@ server <- shinyServer(function(input, output   ) {
     grid.arrange(p1,  p3, p4,p5, ncol=2,
                  
                  top = textGrob(paste0(input$Plot, " LMM model fit diagnostics"),gp=gpar(fontsize=20,font=3)))
-  
+    
     
   })
   
@@ -763,72 +776,11 @@ server <- shinyServer(function(input, output   ) {
   
   output$res.diag2  <- renderPlot({
     
-   fit3 <- fit <- fit.reg()$fit
+    fit3 <- fit <- fit.reg()$fit
     
     df <- make.data()$df
     
     
-    d2 <- df
-    
-    d2$resid <- r <- resid(fit)
-    
-    d2$fitted <- fitted(fit)
-    
-    require(lattice)
-    q1 <- function(x) { 
-      qqmath(ranef(fit, condVar = TRUE), strip = FALSE)$mid
-    }
-    
-    q2  <- function(x) { 
-       qqmath(ranef(fit, condVar = TRUE), strip = FALSE)$top
-    }
-    
-      
-    #https://stackoverflow.com/questions/13847936/plot-random-effects-from-lmer-lme4-package-using-qqmath-or-dotplot-how-to-mak
-    
-    
-    n1 <-  length(ranef(fit3)$low[,1])
-    
-    q3 <- function(x) {  
-    qqnorm(ranef(fit3)$low[,1] ,  main=paste0(n1, " patient random intercepts"))
-    p4 <- qqline(ranef(fit3)$low[,1], col = "red")
-    }
-    
-    n2 <-  length(ranef(fit3)$low[,2])
-    q4 <- function(x) {  
-      qqnorm(ranef(fit3)$low[,2] ,  main=paste0(n2, " patient random slopes"))
-      p4 <- qqline(ranef(fit3)$low[,2], col = "red")
-    }
-    
-    n3 <-  length(ranef(fit3)$mid[,1])
-    q3a <- function(x) {  
-      qqnorm(ranef(fit3)$mid[,1],  main=paste0(n3, " mid group random effects"))
-      p4 <- qqline(ranef(fit3)$mid[,1], col = "red")
-    }
-    
-    n4 <-  length(ranef(fit3)$top[,1])
-    q4a <- function(x) {  
-      qqnorm(ranef(fit3)$top[,1] ,  main=paste0(n4, " top group random effects"))
-      p4 <- qqline(ranef(fit3)$top[,1], col = "red")
-    }
-    
-    
-     
-    par(mfrow=c(2,2))
-       q3();q4(); q3a();q4a()
-     par(mfrow=c(1,1))
-     
-  })
-  
-  
-
-  
-  output$res.diag3  <- renderPlot({
-    
-    fit <- fit.reg()$fit
-    
-    df <- make.data()$df
-
     d2 <- df
     
     d2$resid <- r <- resid(fit)
@@ -844,6 +796,67 @@ server <- shinyServer(function(input, output   ) {
       qqmath(ranef(fit, condVar = TRUE), strip = FALSE)$top
     }
     
+    
+    #https://stackoverflow.com/questions/13847936/plot-random-effects-from-lmer-lme4-package-using-qqmath-or-dotplot-how-to-mak
+    
+    
+    n1 <-  length(lme4::ranef(fit3)$low[,1])
+    
+    q3 <- function(x) {  
+      qqnorm(lme4::ranef(fit3)$low[,1] ,  main=paste0(n1, " patient random intercepts"))
+      p4 <- qqline(lme4::ranef(fit3)$low[,1], col = "red")
+    }
+    
+    n2 <-  length(lme4::ranef(fit3)$low[,2])
+    q4 <- function(x) {  
+      qqnorm(lme4::ranef(fit3)$low[,2] ,  main=paste0(n2, " patient random slopes"))
+      p4 <- qqline(lme4::ranef(fit3)$low[,2], col = "red")
+    }
+    
+    n3 <-  length(lme4::ranef(fit3)$mid[,1])
+    q3a <- function(x) {  
+      qqnorm(lme4::ranef(fit3)$mid[,1],  main=paste0(n3, " mid group random effects"))
+      p4 <- qqline(lme4::ranef(fit3)$mid[,1], col = "red")
+    }
+    
+    n4 <-  length(lme4::ranef(fit3)$top[,1])
+    q4a <- function(x) {  
+      qqnorm(lme4::ranef(fit3)$top[,1] ,  main=paste0(n4, " top group random effects"))
+      p4 <- qqline(lme4::ranef(fit3)$top[,1], col = "red")
+    }
+    
+    
+    
+    par(mfrow=c(2,2))
+    q3();q4(); q3a();q4a()
+    par(mfrow=c(1,1))
+    
+  })
+  
+  
+  
+  
+  output$res.diag3  <- renderPlot({
+    
+    fit <- fit.reg()$fit
+    
+    df <- make.data()$df
+    
+    d2 <- df
+    
+    d2$resid <- r <- resid(fit)
+    
+    d2$fitted <- fitted(fit)
+    
+    require(lattice)
+    q1 <- function(x) { 
+      qqmath(lme4::ranef(fit, condVar = TRUE), strip = FALSE)$mid
+    }
+    
+    q2  <- function(x) { 
+      qqmath(lme4::ranef(fit, condVar = TRUE), strip = FALSE)$top
+    }
+    
     pl = list(q1(), q2()   )
     do.call(grid.arrange, c(pl, nrow=1))
     do.call(grid.arrange, c(lapply(pl, update), list(nrow=2)))
@@ -852,12 +865,12 @@ server <- shinyServer(function(input, output   ) {
   
   
   
- 
   
   
- ##########################################################################################################################
- # plot on first tab overall average over time and count
- ##########################################################################################################################
+  
+  ##########################################################################################################################
+  # plot on first tab overall average over time and count
+  ##########################################################################################################################
   output$reg.plot1 <- renderPlot({ 
     
     df <- make.data()$df
@@ -951,15 +964,15 @@ server <- shinyServer(function(input, output   ) {
     
   }) 
   
- 
   
- 
+  
+  
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # tab 3
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # start of spaghetti plots of data at which trt effect starts after baseline allowing highlighting of selected patients
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- 
+  
   output$reg.plot2 <- renderPlot({ 
     
     df<- make.data()$df
@@ -1043,18 +1056,18 @@ server <- shinyServer(function(input, output   ) {
     
     
     if (input$Plot1 == "Overall") {
-
+      
       
       print(pr1 + labs(y="Response", x = "Visit") + 
               ggtitle(paste0("Individual responses ",
                              length(unique(df$ID))," patients & arithmetic mean with 95% CI shown in black\nNumber of patient values at each time point") )
       )
-  
-   
+      
+      
     }  else  if (input$Plot1 == "Individual") {
       
       i <- as.numeric(unlist(strsplit(input$vec1,",")))
-   
+      
       
       if("999" %in% i) {
         
@@ -1068,25 +1081,25 @@ server <- shinyServer(function(input, output   ) {
         
       }
       
-           
+      
       print(pr1 + labs(y="Response", x = "Visit") + 
               ggtitle(paste0("Individual responses ",
                              length(unique(df$ID))," patients & arithmetic mean with 95% CI shown in black\nNumber of patient values at each time point") )
       )
       
       pxx <- pr1 +  geom_line(data = dd,
-                             aes(group=ID, x = VISIT, y = value),    linetype="solid", col='red', size=1) 
+                              aes(group=ID, x = VISIT, y = value),    linetype="solid", col='red', size=1) 
       
-   
+      
       print(pxx)
-    
+      
       
     }   
   })
-    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    # end of spaghetti plots of data at which trt effect starts after baseline allowing highlighting of selected patients
-    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- 
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # end of spaghetti plots of data at which trt effect starts after baseline allowing highlighting of selected patients
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # spaghetti plots appear on B1 Plot tab
   # this looks like it uses the AR1 response
@@ -1095,7 +1108,7 @@ server <- shinyServer(function(input, output   ) {
   output$reg.plot3 <- renderPlot({ 
     
     sample <- random.sample()
- 
+    
     interaction<-    sample$interaction
     trt   <-         sample$trt
     
@@ -1104,27 +1117,27 @@ server <- shinyServer(function(input, output   ) {
     df$unit   <- df$low
     df$treat  <- factor(df$trt)
     
-  #   pd <- position_dodge(.4)
-  #   
-  #   plot1 <-  ggplot(df,   aes (x = time, y = y, group = unit, color = treat)) +
-  #     geom_line() + 
-  #     geom_point() + ylab("response") + xlab("visit") +
-  #     stat_summary(fun=mean,geom="line", colour=("red"),lwd=2, aes(group=treat ) ) + 
-  #     scale_color_manual(values=c('black','orange'))+
-  #     theme(legend.position="top") +
-  #      scale_x_continuous(breaks=c(0:max(df$time)))
-  #   
-  #   print(plot1 + labs(y="Response", x = "Visit")) + 
-  #     ggtitle(paste0("Individual responses from ",
-  #                    length(unique(df$unit)),
-  #                    " patients, true trt effect ",trt," true interaction ", interaction  ,"
-  # Red lines arithmetic means at each time point in treatment groups.") )
-  #   
+    #   pd <- position_dodge(.4)
+    #   
+    #   plot1 <-  ggplot(df,   aes (x = time, y = y, group = unit, color = treat)) +
+    #     geom_line() + 
+    #     geom_point() + ylab("response") + xlab("visit") +
+    #     stat_summary(fun=mean,geom="line", colour=("red"),lwd=2, aes(group=treat ) ) + 
+    #     scale_color_manual(values=c('black','orange'))+
+    #     theme(legend.position="top") +
+    #      scale_x_continuous(breaks=c(0:max(df$time)))
+    #   
+    #   print(plot1 + labs(y="Response", x = "Visit")) + 
+    #     ggtitle(paste0("Individual responses from ",
+    #                    length(unique(df$unit)),
+    #                    " patients, true trt effect ",trt," true interaction ", interaction  ,"
+    # Red lines arithmetic means at each time point in treatment groups.") )
+    #   
     
     ####################################################
     
     p <- ggplot(data = df , aes(x = time, y = y, group = unit,
-                                         colour = unit)) 
+                                colour = unit)) 
     
     p <- p + geom_line() + 
       stat_smooth(aes(group = 1 )) + 
@@ -1160,8 +1173,8 @@ server <- shinyServer(function(input, output   ) {
     
     p  
     
-  
-    })
+    
+  })
   
   
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1182,27 +1195,27 @@ server <- shinyServer(function(input, output   ) {
     df        <- fit.reg()$df
     
     
-  #  df$time <- factor(df$time)
+    #  df$time <- factor(df$time)
     
-     df$y      <- df$s      #here is the simulated response
-     
-     
-     #df$y <- predict (fit) #, newdata=df, allow.new.levels=T)
-     
-      
-     # df$y <- simulate(fit, seed=1,  re.form=NULL,
-     #                          allow.new.levels=F)$sim_1
-     
+    df$y      <- df$s      #here is the simulated response
+    
+    
+    #df$y <- predict (fit) #, newdata=df, allow.new.levels=T)
+    
+    
+    # df$y <- simulate(fit, seed=1,  re.form=NULL,
+    #                          allow.new.levels=F)$sim_1
+    
     # df$predicted <- predict (fit, newdata=df, allow.new.levels=T)
-     # df$y <- simulate(fit, seed=1,  re.form=NULL,newdata=df ,
-     #                          allow.new.levels=F)$sim_1
-     
-     
-     
+    # df$y <- simulate(fit, seed=1,  re.form=NULL,newdata=df ,
+    #                          allow.new.levels=F)$sim_1
+    
+    
+    
     df$unit   <- df$low
     df$treat  <- factor(df$trt)
-
-
+    
+    
     
     p <- ggplot(data = df , aes(x = time, y = y, group = unit,
                                 colour = unit)) 
@@ -1214,9 +1227,9 @@ server <- shinyServer(function(input, output   ) {
       stat_summary(aes(group = 1),
                    geom = "line", fun = mean, col='red',lwd=1) +
       
-    #  scale_x_continuous(breaks = c(unique(df$time)),
-                   #      labels = 
-                       #   c(unique(df$time))) +
+      #  scale_x_continuous(breaks = c(unique(df$time)),
+      #      labels = 
+      #   c(unique(df$time))) +
       xlab("Visit") + 
       ylab("Response") +
       
@@ -1251,12 +1264,87 @@ server <- shinyServer(function(input, output   ) {
   # -----------------------------------------------OVERALL PLOT
   # ---------------------------------------------------------------------------
   
- 
+  
   # Diagnostics using data at which trt effect starts after baseline
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   
-   
- 
+  
+  
+  
+  fit.regb <- reactive({
+    
+    sample <- random.sample()
+    
+    df<- make.data()$df
+    
+    df <- df[!df$time %in% 0,]
+    
+    df$time <- factor(df$time)
+    
+    df$time <- relevel(df$time, ref = "5")
+    (fit <- lmer( y2b ~  y0*time + time* trt + (1|top) + (1|mid) + (as.numeric(time)|low), data=df))
+    summary(fit)
+    
+    # df$predicted <- predict (fit, newdata=df, allow.new.levels=T)
+    df$s <- simulate(fit, seed=1,  re.form=NULL,newdata=df ,
+                     allow.new.levels=F)$sim_1
+    
+
+    
+    ddz <<- datadist(df)  # need the double in this environ <<
+    options(datadist='ddz')
+    (fit.res <-  
+        tryCatch(Gls(y2b ~ y0*time +time* trt  ,
+                     correlation=corAR1(form=~ as.numeric(time)|low), 
+                     weights=varIdent(form=~1|time),
+                     df, na.action=na.omit) , 
+                 error=function(e) e))
+    
+    
+    summary(fit)
+    summary(fit.res)
+    
+    
+     
+    time. <- unique(df$time)
+    
+     
+    k1a <- rms::contrast(fit.res, list(time=time.,  trt =1 ),
+                                  list(time=time.,  trt =0 ))
+    
+    
+    x <- as.data.frame(k1a[c('time', 'Contrast', 'Lower', 'Upper')]) 
+    
+    namez <- c("Follow-up Visit", "Active - Placebo", "Lower 95%CI","Upper 95%CI")
+    
+    names(x) <- namez
+    
+    return(list( fit.lmer= summary(fit) , fit=fit, fit.res=fit.res , x=x, df=df))
+    
+  })   
+  
+  
+  
+  output$reg.summaryb1b <- renderPrint({
+    
+    summary <- fit.regb()$fit.res
+    
+    return(list(summary))
+    
+  })  
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  
+  output$reg.summaryb2b <- renderPrint({
+    
+    summary <- fit.regb()$fit.lmer
+    
+    return(list(summary))
+    
+  })  
+  
+  
+  
+  
   
 })
 
