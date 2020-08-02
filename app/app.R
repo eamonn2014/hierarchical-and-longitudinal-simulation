@@ -225,7 +225,9 @@ ui <- fluidPage(theme = shinytheme("journal"), #https://www.rdocumentation.org/p
                                        
                                        #     div(plotOutput("reg.plot33", width=fig.width, height=fig.height)),  
                                        # h4(paste("Figure 5. xxxxxxxxxxxxxxx")), 
+                                       h4(paste("Here is the ar1 spaghetti response")),
                                        div(plotOutput("reg.plot3", width=fig.width, height=fig.height)),
+                                       h4(paste("Here is the simulated data using model with AR1 spaghetti response")),
                                        div(plotOutput("reg.pred", width=fig.width, height=fig.height)),
                                        
                                        
@@ -317,6 +319,7 @@ server <- shinyServer(function(input, output   ) {
   
   # --------------------------------------------------------------------------
   # This is where a new sample is instigated 
+  # components are generated that can build the data
   random.sample <- reactive({
     
     # Dummy line to trigger off button-press
@@ -409,7 +412,10 @@ server <- shinyServer(function(input, output   ) {
   })
   
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
-  #  start creating data
+  # Now we start creating data a data frame with two responses
+  # add a trt effect create response also interaction with time.
+  # y2b <- random error model response
+  # yb <- ar1 model response
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
   
   make.data <- reactive({
@@ -536,7 +542,7 @@ server <- shinyServer(function(input, output   ) {
                                      U[,1][lower.id] +                               # random intercepts
                                      ((beta1 +  U[,2][lower.id]) *  time), sigma),   # random slopes
                         
-                        # ar1 nosie
+                        # ar1 noise
                         y=  top.r[top.id] + 
                           middle.r[middle.id] +
                           U[,1][lower.id] +                       # random intercepts
@@ -589,7 +595,8 @@ server <- shinyServer(function(input, output   ) {
   
   
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # run lmer and gls (and get contrasts) on the data were treatment effect starts after time 0
+  # run lmer and gls (and get contrasts) on the data where treatment effect starts after time 0
+  # also simulate a response s
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   
   fit.reg <- reactive({
@@ -602,8 +609,15 @@ server <- shinyServer(function(input, output   ) {
     
    # d$treat <- relevel(d$treat, ref= "Placebo")  # NEW
     
-    (fit <- lmer( y ~ time* trt  + (1|top) + (1|mid) + (as.numeric(time)|low), data=df))
+    ###!!!!!!!!!!!!!!!!!!!!!RESPONSE WAS Y WHICH DOES NOT HAVE TRT EFFECR!!!!!!!!!!!!!!!!!!!
+    (fit <- lmer( yb ~ time* trt  + (1|top) + (1|mid) + (as.numeric(time)|low), data=df))
+    #(fit1 <- lmer( y ~ time* trt  + (1|top/mid) + (as.numeric(time)|low), data=df)) will match
+    (fit2 <- lmer( y ~ time *trt+   (as.numeric(time)|top/mid/low), data=df))   # warning
+   #  (fit3 <- lmer( y ~ time +   (0+as.numeric(time)|top/mid/low), data=df))  # no correlation
     
+    #anova(fit, fit2, fit3)
+    
+    anova(fit, fit2)
     
     # df$predicted <- predict (fit, newdata=df, allow.new.levels=T)
     df$s <- simulate(fit, seed=1,  re.form=NULL,newdata=df ,
@@ -838,18 +852,11 @@ server <- shinyServer(function(input, output   ) {
   
   
   
+ 
   
   
-  
-  
-  
-  
-  
-  
-  
-  
-  
-
+ ##########################################################################################################################
+ # plot on first tab overall average over time and count
  ##########################################################################################################################
   output$reg.plot1 <- renderPlot({ 
     
@@ -938,43 +945,21 @@ server <- shinyServer(function(input, output   ) {
     
     
     ######################################################
-    
-    
-    
-    
-    
-    
-    
-    
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # end of spaghetti plots of data at which trt effect starts after baseline allowing highlighting of selected patients
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     
   }) 
   
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # fit lmer regression on the data in which trt effect starts at baseline
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  
  
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # model output
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  
-  
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # fit gls regression on the data in which trt effect starts at baseline and get contrasts over time
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   
  
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # tab 3
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # start of spaghetti plots of data at which trt effect starts after baseline allowing highlighting of selected patients
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # --------------------------------------------------------------------------
-  # -----------------------------------------------OVERALL PLOT
-  # ---------------------------------------------------------------------------
-  
+ 
   output$reg.plot2 <- renderPlot({ 
     
     df<- make.data()$df
@@ -1102,6 +1087,10 @@ server <- shinyServer(function(input, output   ) {
     # end of spaghetti plots of data at which trt effect starts after baseline allowing highlighting of selected patients
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # spaghetti plots appear on B1 Plot tab
+  # this looks like it uses the AR1 response
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   
   output$reg.plot3 <- renderPlot({ 
     
@@ -1111,7 +1100,7 @@ server <- shinyServer(function(input, output   ) {
     trt   <-         sample$trt
     
     df        <- make.data()$df
-    df$y      <- df$yb
+    df$y      <- df$yb                      #AR1 response
     df$unit   <- df$low
     df$treat  <- factor(df$trt)
     
@@ -1176,7 +1165,8 @@ server <- shinyServer(function(input, output   ) {
   
   
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # end of boxplots of data at which trt effect starts after baseline allowing highlighting of selected patients
+  # selected patients
+  # this looks like it uses the simulated response
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   
   output$reg.pred <- renderPlot({ 
@@ -1194,7 +1184,7 @@ server <- shinyServer(function(input, output   ) {
     
   #  df$time <- factor(df$time)
     
-     df$y      <- df$s
+     df$y      <- df$s      #here is the simulated response
      
      
      #df$y <- predict (fit) #, newdata=df, allow.new.levels=T)
