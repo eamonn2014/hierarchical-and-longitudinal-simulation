@@ -4,7 +4,7 @@
 ## need to include the baseline as covariate
 ## need to predict, simulate and check residuals...
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-rm(list=ls())
+rm(list=ls()) 
 #set.seed(786)
 
 library(lme4)
