@@ -160,21 +160,25 @@ library(ggplot2)
 xlab <- "Visit"
 ylab <- "response"
 
-sel <- sample(1:max(df$low), 20, replace =F)  # select small  number of samples
+i <- unique(df$ID)
 
-df1 <- df[ df$low %in% sel,]
+#sel <- sample(1:max(df$low), 20, replace =F)  # select small  number of samples
 
-ggplot(df1) + 
-  aes(x = VISIT, y = y) + 
-  stat_smooth(method = "lm", se = FALSE) +
-  # Put the points on top of lines
-  geom_point() +
-  facet_wrap("ID") +
-  labs(x = xlab, y = ylab) + 
-  # We also need to help the x-axis, so it doesn't 
-  # create gridlines/ticks  
-  scale_x_continuous(breaks = 0:last.visit)
+#df1 <- df[ df$low %in% sel,]
 
+df1 <- df
+# 
+# ggplot(df1) + 
+#   aes(x = VISIT, y = y) + 
+#   stat_smooth(method = "lm", se = FALSE) +
+#   # Put the points on top of lines
+#   geom_point() +
+#   facet_wrap("ID") +
+#   labs(x = xlab, y = ylab) + 
+#   # We also need to help the x-axis, so it doesn't 
+#   # create gridlines/ticks  
+#   scale_x_continuous(breaks = 0:last.visit) +
+# theme(legend.position = "top")
  
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ols fits by id
 
@@ -208,20 +212,20 @@ head(df_models)
 df1 <- df_models[ df_models$ID %in% sel,]
 df1$VISIT <- as.numeric(as.character(df1$VISIT))
 
-p_model_comparison <- ggplot(df1) + 
-  aes(x = VISIT, y = y) + 
-  # Set the color mapping in this layer so the points don't get a color
-  geom_abline(aes(intercept = Intercept, slope = time, color = Model),
-              size = .75) + 
-  geom_point() +
-  facet_wrap("ID") +
-  labs(x = xlab, y = ylab) + 
-  scale_x_continuous(breaks = 0:last.visit) + 
-  # Fix the color palette 
-  scale_color_brewer(palette = "Dark2") + 
-  theme(legend.position = "top")
-
-p_model_comparison
+# p_model_comparison <- ggplot(df1) + 
+#   aes(x = VISIT, y = y) + 
+#   # Set the color mapping in this layer so the points don't get a color
+#   geom_abline(aes(intercept = Intercept, slope = time, color = Model),
+#               size = .75) + 
+#   geom_point() +
+#   facet_wrap("ID") +
+#   labs(x = xlab, y = ylab) + 
+#   scale_x_continuous(breaks = 0:last.visit) + 
+#   # Fix the color palette 
+#   scale_color_brewer(palette = "Dark2") + 
+#   theme(legend.position = "top")
+# 
+# p_model_comparison
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -246,11 +250,90 @@ df_models2 <- (df_partial_pooling) %>%
 head(df_models2)
 
 d <- rbind(df_models2, df_models)
-d <- d[ d$ID %in% sel,]
+# d <- d[ d$ID %in% sel,]
 
 d$VISIT <- as.numeric(as.character(d$VISIT))
 
-p_model_comparison <- ggplot(d) + 
+#  
+# p_model_comparison <- ggplot(d) + 
+#   aes(x = VISIT, y = y) + 
+#   # Set the color mapping in this layer so the points don't get a color
+#   geom_abline(aes(intercept = Intercept, slope = time, color = Model),
+#               size = .75) + 
+#   geom_point() +
+#   facet_wrap("ID") +
+#   labs(x = xlab, y = ylab) + 
+#   scale_x_continuous(breaks = 0:last.visit) + 
+#   # Fix the color palette 
+#   scale_color_brewer(palette = "Dark2") + 
+#   theme(legend.position = "top")
+# 
+# p_model_comparison
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A <- "Complete pooling"
+B <- "No pooling"
+C <- "Partial pooling"
+
+sel <- sample(1:max(df$low), 20, replace =F)  # select small  number of samples
+
+dx <- subset(d, subset = Model %in% c(A,B))
+
+sel <- sample(i, 20, replace =F)  # select small  number of samples
+
+
+
+dx <- dx[ dx$ID %in% sel,]
+# ordering by ID
+dx <- plyr::arrange(dx, ID)
+dx$ID <- as.numeric(as.character(dx$ID))  
+dx$ID <- as.factor(dx$ID)   
+
+p_model_comparison <- ggplot(dx) + 
+  aes(x = VISIT, y = y) + 
+  # Set the color mapping in this layer so the points don't get a color
+  geom_abline(aes(intercept = Intercept, slope = time, color = Model),
+              size = .75) + 
+  geom_point() +
+  facet_wrap("ID") +
+  labs(x = xlab, y = ylab) + 
+  scale_x_continuous(breaks = 0:last.visit) + 
+  # Fix the color palette 
+  scale_color_brewer(palette = "Dark2") + 
+  theme(legend.position = "top")
+
+p_model_comparison
+
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+### order by no pooling absolute slope! 
+
+
+A <- "Complete pooling"
+B <- "No pooling"
+C <- "Partial pooling"
+ 
+dx <- subset(d, subset = Model %in% c(A,B,C))
+
+sel <- sample(i, 20, replace =F)  # select small  number of samples
+
+
+tmp <- df_no_pooling[df_no_pooling$ID %in% sel,]        # get small number of no pooling data
+tmp <- plyr::arrange(tmp , -abs(time))                        # sort by slope or Intercept
+tmp$ID <- as.numeric(as.character(tmp$ID))  
+tmp$ID <- as.factor(tmp$ID )
+
+xx <- as.numeric(as.character(tmp$ID))
+
+tmp
+xx
+
+
+dx <- dx[ dx$ID %in% sel,]
+dx$ID <- factor(dx$ID, levels = xx)
+
+p_model_comparison <- ggplot(dx) + 
   aes(x = VISIT, y = y) + 
   # Set the color mapping in this layer so the points don't get a color
   geom_abline(aes(intercept = Intercept, slope = time, color = Model),
@@ -266,6 +349,14 @@ p_model_comparison <- ggplot(d) +
 p_model_comparison
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+
+
+
+
+
+
 
 
 
